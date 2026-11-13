@@ -28,6 +28,8 @@ Ele é feito com [Tauri 2](https://tauri.app) e usa o runtime **Microsoft Edge W
 - **Leve**: Tauri + WebView2, sem Electron. `.exe` portable, sem instalador.
 - **Seu YouTube Music de verdade**: entre com sua conta e tenha playlists, curtidas, mixes, letras, tudo.
 - **Plugins inclusos**: SponsorBlock, volume preciso, velocidade de reprodução, seletor de qualidade e mais, configuráveis num painel dentro do app.
+- **Barra de título própria**: janela sem moldura cuja barra (voltar/avançar, configurações e os botões da janela) usa o fundo da página, inclusive os gradientes.
+- **Atualização automática**: procura uma release nova no GitHub e, depois que você confirma, troca o exe e reinicia.
 - **Ícone na bandeja**: música atual, tocar/pausar, anterior/próxima, mostrar/esconder, configurações e sair pela área de notificação. Clique no ícone para esconder a janela e continuar ouvindo.
 - **Leve no PC**: scripts orientados a eventos, e o WebView2 reduz a memória enquanto a janela está minimizada ou escondida.
 - **Extensões do navegador**: instale extensões da Chrome Web Store ou da Edge Add-ons direto no app.
@@ -72,7 +74,7 @@ Observações:
 
 ## Plugins
 
-Clique no botão **Configurações do Takaro** (ícone de sliders) na barra superior do YouTube Music, ou em **Configurações** no menu da bandeja. O painel tem três abas: **Plugins**, **Extensões** e **Geral** (idioma, versão e links). As mudanças são salvas na hora; quando alguma precisa recarregar a página, aparece uma barra **Recarregar** embaixo.
+Clique no botão **Configurações do Takaro** (ícone de sliders) na barra superior do YouTube Music, ou em **Configurações** no menu da bandeja. O painel tem três abas: **Plugins**, **Extensões** e **Geral** (idioma, versão e links). Na aba **Geral** também dá para escolher o que o **X** da janela faz: fechar o app ou minimizar para a bandeja. As mudanças são salvas na hora; quando alguma precisa recarregar a página, aparece uma barra **Recarregar** embaixo.
 
 | Plugin | O que faz | Opções |
 |---|---|---|
@@ -84,7 +86,6 @@ Clique no botão **Configurações do Takaro** (ícone de sliders) na barra supe
 | **Velocidade de reprodução** | Controle de 0,07× a 16× no menu ⋮ do player. Roda do mouse para passos de 0,01; clique no valor para voltar a 1×. | — |
 | **Seletor de qualidade** | Botão sobre o player para escolher a qualidade do stream. | — |
 | **Vídeo ou capa** | Escolha o que o player mostra: botão Música/Vídeo, sempre só a capa (sem vídeo), ou nada (a fila ocupa a tela). | O player mostra |
-| **Navegação** | Botões de voltar e avançar na barra superior. | — |
 
 O Takaro também corrige o menu ⋮ da barra do player para que um segundo clique o feche.
 
@@ -167,6 +168,8 @@ Takaro/
 │  │  ├─ main.rs              # Janela, comandos IPC, payload do Rich Presence
 │  │  ├─ discord.rs           # Cliente mínimo do Discord IPC (named pipe, sem dependências)
 │  │  ├─ extensions.rs        # Extensões: download da loja, instalação, lista, remoção
+│  │  ├─ window.rs            # Janela sem moldura + ações da barra de título
+│  │  ├─ updater.rs           # Consulta as releases do GitHub e troca o exe
 │  │  ├─ tray.rs              # Ícone e menu da bandeja
 │  │  ├─ perf.rs              # Modo de pouca memória do WebView2 com a janela minimizada/escondida
 │  │  ├─ i18n/                # Traduções do app: <código>.json (embutidas no build)
@@ -211,6 +214,7 @@ Constantes no topo de `src-tauri/src/main.rs`:
 | `SITE_URL` | o site do projeto | Link do segundo botão do card (“Get Takaro”) |
 | `STATUS_DISPLAY_TYPE` | `2` | O que aparece depois de "Ouvindo" na lista de membros: `0` nome do app, `1` artista, `2` música |
 | `SMALL_IMAGE_KEY` | `""` | Chave opcional de um Art Asset exibido como ícone pequeno sobre a capa |
+| `UPDATE_REPO` (`updater.rs`) | `2nxty/Takaro` | Repositório do GitHub consultado para novas versões. Em forks, troque pelo seu. |
 
 **Configurando sua aplicação do Discord:** crie uma aplicação no [Discord Developer Portal](https://discord.com/developers/applications), dê a ela o nome que deve aparecer no card ("Ouvindo *Nome*") e envie um ícone. Depois use o **Application ID** dela:
 

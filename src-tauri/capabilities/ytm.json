@@ -13,6 +13,9 @@
     "allow-open-store",
     "allow-open-extension-options",
     "allow-open-external",
-    "allow-set-tray-labels"
+    "allow-set-tray-labels",
+    "allow-titlebar-action",
+    "allow-check-update",
+    "allow-install-update"
   ]
 }

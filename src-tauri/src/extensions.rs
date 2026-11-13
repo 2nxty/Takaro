@@ -56,10 +56,10 @@ where
     T: Send + 'static,
     F: FnOnce(ICoreWebView2Profile7, mpsc::Sender<Res<T>>) -> Res<()> + Send + 'static,
 {
-    let window = app.get_webview_window("main").ok_or("main window not found")?;
+    let webview = crate::window::ytm(app).ok_or("YouTube Music webview not found")?;
     let (tx, rx) = mpsc::channel::<Res<T>>();
     let tx2 = tx.clone();
-    window
+    webview
         .with_webview(move |wv| {
             let run = || -> Res<()> {
                 let profile = unsafe {
@@ -421,8 +421,8 @@ pub async fn open_store(app: AppHandle, store: String, lang: String) -> Res<()> 
 /// Reloads YouTube Music so newly installed extensions take effect.
 #[tauri::command]
 pub fn reload_main(app: AppHandle) -> Res<()> {
-    let w = app.get_webview_window("main").ok_or("main window not found")?;
-    w.eval("location.reload()").map_err(err)?;
-    let _ = w.set_focus();
+    let page = crate::window::ytm(&app).ok_or("YouTube Music webview not found")?;
+    page.eval("window.Takaro?.reload ? Takaro.reload() : location.reload()").map_err(err)?;
+    let _ = page.set_focus();
     Ok(())
 }

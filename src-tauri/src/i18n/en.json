@@ -21,7 +21,10 @@
     "tagline": "YouTube Music for desktop, with Discord Rich Presence.",
     "site": "Website",
     "issues": "Report an issue",
-    "credits": "Plugins ported from pear-desktop (MIT)."
+    "credits": "Plugins ported from pear-desktop (MIT).",
+    "closeAction": "Close button (X)",
+    "closeQuit": "Quit Takaro",
+    "closeTray": "Minimize to the tray"
   },
   "tray": {
     "play": "Play",
@@ -31,6 +34,28 @@
     "show": "Show Takaro",
     "settings": "Settings",
     "quit": "Quit"
+  },
+  "titlebar": {
+    "back": "Back",
+    "forward": "Forward",
+    "settings": "Takaro settings",
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "update": {
+    "title": "Updates",
+    "body": "Takaro {latest} is available. You have {current}. Update now? The app restarts on its own.",
+    "now": "Update now",
+    "later": "Later",
+    "skip": "Skip this version",
+    "downloading": "Downloading the update…",
+    "failed": "Couldn't update: {error}",
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "upToDate": "You're on the latest version.",
+    "checkFailed": "Couldn't check for updates."
   },
   "extensions": {
     "title": "Extensions",
@@ -122,12 +147,6 @@
           "hidden": "Nothing (hide the player, queue on full page)"
         }
       }
-    },
-    "navigation": {
-      "name": "Navigation buttons",
-      "description": "Back and forward buttons in the top bar.",
-      "back": "Back",
-      "forward": "Forward"
     }
   }
 }

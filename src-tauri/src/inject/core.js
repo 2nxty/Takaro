@@ -29,6 +29,7 @@
   T.locales = window.__TAKARO_LOCALES__ || {};
   T.FALLBACK_LANG = 'en';
   T.getLanguagePref = () => stored.__takaro?.language || 'auto';
+  T.closeToTray = () => stored.__takaro?.closeToTray ?? true; // default: X hides to the tray
   let langCache = null;
   T.lang = () => {
     if (langCache) return langCache;
@@ -54,6 +55,15 @@
     let s = lookup(T.locales[T.lang()], key) ?? lookup(T.locales[T.FALLBACK_LANG], key) ?? key;
     if (vars && typeof s === 'string') s = s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
     return s;
+  };
+
+  // ── Reload without YTM's "Reload site? Changes may not be saved" prompt ──
+  // Registered at document-start, so it runs before YTM's own beforeunload handlers.
+  let forceReload = false;
+  window.addEventListener('beforeunload', (e) => forceReload && e.stopImmediatePropagation(), true);
+  T.reload = () => {
+    forceReload = true;
+    location.reload();
   };
 
   // ── IPC ──────────────────────────────────────────────────

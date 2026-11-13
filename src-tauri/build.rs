@@ -21,6 +21,9 @@ fn main() {
                 "reload_main",
                 "open_external",
                 "set_tray_labels",
+                "titlebar_action",
+                "check_update",
+                "install_update",
             ]),
         ),
     )

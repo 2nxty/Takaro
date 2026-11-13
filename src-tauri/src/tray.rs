@@ -7,7 +7,7 @@ use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, State, Wry};
 
-use crate::perf;
+use crate::{perf, window};
 
 #[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -125,26 +125,31 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
 }
 
 fn page(app: &AppHandle, js: &str) {
-    if let Some(w) = app.get_webview_window("main") {
-        let _ = w.eval(js);
+    if let Some(page) = window::ytm(app) {
+        let _ = page.eval(js);
     }
 }
 
 fn show_main(app: &AppHandle) {
-    if let Some(w) = app.get_webview_window("main") {
+    if let Some(w) = window::ytm(app) {
         let _ = w.show();
         let _ = w.unminimize();
         let _ = w.set_focus();
-        perf::set_low_memory(&w, false);
+    }
+    if let Some(page) = window::ytm(app) {
+        perf::set_low_memory(&page, false);
+        let _ = page.set_focus();
     }
 }
 
 fn toggle_main(app: &AppHandle) {
-    let Some(w) = app.get_webview_window("main") else { return };
+    let Some(w) = window::ytm(app) else { return };
     let visible = w.is_visible().unwrap_or(false) && !w.is_minimized().unwrap_or(false);
     if visible {
         let _ = w.hide();
-        perf::set_low_memory(&w, true);
+        if let Some(page) = window::ytm(app) {
+            perf::set_low_memory(&page, true);
+        }
     } else {
         show_main(app);
     }

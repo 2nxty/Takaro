@@ -21,7 +21,10 @@
     "tagline": "YouTube Music en el escritorio, con Discord Rich Presence.",
     "site": "Sitio web",
     "issues": "Reportar un problema",
-    "credits": "Plugins portados de pear-desktop (MIT)."
+    "credits": "Plugins portados de pear-desktop (MIT).",
+    "closeAction": "Botón cerrar (X)",
+    "closeQuit": "Cerrar Takaro",
+    "closeTray": "Minimizar a la bandeja"
   },
   "tray": {
     "play": "Reproducir",
@@ -31,6 +34,28 @@
     "show": "Mostrar Takaro",
     "settings": "Ajustes",
     "quit": "Salir"
+  },
+  "titlebar": {
+    "back": "Atrás",
+    "forward": "Adelante",
+    "settings": "Ajustes de Takaro",
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Cerrar"
+  },
+  "update": {
+    "title": "Actualizaciones",
+    "body": "Takaro {latest} está disponible. Tienes la {current}. ¿Actualizar ahora? La app se reinicia sola.",
+    "now": "Actualizar ahora",
+    "later": "Más tarde",
+    "skip": "Omitir esta versión",
+    "downloading": "Descargando la actualización…",
+    "failed": "No se pudo actualizar: {error}",
+    "check": "Buscar actualizaciones",
+    "checking": "Buscando…",
+    "upToDate": "Tienes la última versión.",
+    "checkFailed": "No se pudo buscar actualizaciones."
   },
   "extensions": {
     "title": "Extensiones",
@@ -122,12 +147,6 @@
           "hidden": "Nada (oculta el reproductor, cola a pantalla completa)"
         }
       }
-    },
-    "navigation": {
-      "name": "Botones de navegación",
-      "description": "Botones de atrás y adelante en la barra superior.",
-      "back": "Atrás",
-      "forward": "Adelante"
     }
   }
 }

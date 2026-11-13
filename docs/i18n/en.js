@@ -81,8 +81,6 @@ TakaroI18n.add("en", "English", {
     "quality": "Pick the stream quality from a button on the player.",
     "videoName": "Video or cover",
     "video": "Show the music video, only the cover art, or hide the player entirely.",
-    "navigationName": "Navigation",
-    "navigation": "Back and forward buttons in the top bar.",
     "note": "Plugins are ported from pear-desktop (MIT)."
   },
   "extensions": {

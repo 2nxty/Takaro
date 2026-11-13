@@ -81,8 +81,6 @@ TakaroI18n.add("es", "Español", {
     "quality": "Elige la calidad del stream con un botón sobre el reproductor.",
     "videoName": "Video o portada",
     "video": "Muestra el videoclip, solo la portada, u oculta el reproductor.",
-    "navigationName": "Navegación",
-    "navigation": "Botones de atrás y adelante en la barra superior.",
     "note": "Los plugins están portados de pear-desktop (MIT)."
   },
   "extensions": {

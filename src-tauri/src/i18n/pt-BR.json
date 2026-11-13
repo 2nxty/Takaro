@@ -21,7 +21,10 @@
     "tagline": "YouTube Music no desktop, com Discord Rich Presence.",
     "site": "Site",
     "issues": "Relatar um problema",
-    "credits": "Plugins portados do pear-desktop (MIT)."
+    "credits": "Plugins portados do pear-desktop (MIT).",
+    "closeAction": "Botão fechar (X)",
+    "closeQuit": "Fechar o Takaro",
+    "closeTray": "Minimizar para a bandeja"
   },
   "tray": {
     "play": "Tocar",
@@ -31,6 +34,28 @@
     "show": "Mostrar Takaro",
     "settings": "Configurações",
     "quit": "Sair"
+  },
+  "titlebar": {
+    "back": "Voltar",
+    "forward": "Avançar",
+    "settings": "Configurações do Takaro",
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Fechar"
+  },
+  "update": {
+    "title": "Atualizações",
+    "body": "O Takaro {latest} está disponível. Você tem a {current}. Atualizar agora? O app reinicia sozinho.",
+    "now": "Atualizar agora",
+    "later": "Depois",
+    "skip": "Pular esta versão",
+    "downloading": "Baixando a atualização…",
+    "failed": "Não foi possível atualizar: {error}",
+    "check": "Verificar atualizações",
+    "checking": "Verificando…",
+    "upToDate": "Você está na versão mais recente.",
+    "checkFailed": "Não foi possível verificar atualizações."
   },
   "extensions": {
     "title": "Extensões",
@@ -122,12 +147,6 @@
           "hidden": "Nada (esconde o player, fila na tela toda)"
         }
       }
-    },
-    "navigation": {
-      "name": "Botões de navegação",
-      "description": "Botões de voltar e avançar na barra superior.",
-      "back": "Voltar",
-      "forward": "Avançar"
     }
   }
 }

@@ -4,12 +4,14 @@ mod discord;
 mod extensions;
 mod perf;
 mod tray;
+mod updater;
+mod window;
 
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
 use std::sync::mpsc::{channel, Sender};
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::{State, WebviewUrl, WebviewWindowBuilder};
+use tauri::State;
 
 // ───────────── Configuration ─────────────
 /// Discord application ID (Developer Portal → your app → "Application ID").
@@ -52,7 +54,6 @@ const INJECT: &str = concat!(
     include_str!("inject/plugins/playback-speed.js"), "\n",
     include_str!("inject/plugins/quality-changer.js"), "\n",
     include_str!("inject/plugins/video-toggle.js"), "\n",
-    include_str!("inject/plugins/navigation.js"), "\n",
     include_str!("inject/ui.js"), "\n",
     include_str!("inject/presence.js"),
 );
@@ -221,6 +222,9 @@ fn main() {
             playback_stopped,
             open_external,
             tray::set_tray_labels,
+            window::titlebar_action,
+            updater::check_update,
+            updater::install_update,
             extensions::list_extensions,
             extensions::set_extension_enabled,
             extensions::remove_extension,
@@ -230,22 +234,9 @@ fn main() {
             extensions::reload_main,
         ])
         .setup(|app| {
+            updater::cleanup();
             tray::setup(app.handle())?;
-            let main = WebviewWindowBuilder::new(
-                app,
-                "main",
-                WebviewUrl::External("https://music.youtube.com/".parse().unwrap()),
-            )
-            .title("Takaro")
-            .inner_size(1280.0, 820.0)
-            .min_inner_size(800.0, 560.0)
-            // Same as YouTube Music's background: no white flash while the page loads.
-            .background_color(tauri::window::Color(3, 3, 3, 255))
-            .browser_extensions_enabled(true)
-            .initialization_script(INJECT)
-            .build()?;
-            let handle = main.clone();
-            main.on_window_event(move |event| perf::on_window_event(&handle, event));
+            window::create(app, INJECT)?;
             Ok(())
         })
         .run(tauri::generate_context!())

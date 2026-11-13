@@ -55,6 +55,8 @@ It is built with [Tauri 2](https://tauri.app) and uses the **Microsoft Edge WebV
 - **Lightweight** — Tauri + WebView2, no Electron. Portable `.exe`, no installer.
 - **Your real YouTube Music** — sign in with your account: playlists, likes, mixes, lyrics, everything works.
 - **Built-in plugins** — SponsorBlock, precise volume, playback speed, quality selector and more, configurable from an in-app panel.
+- **Built-in title bar** — a frameless window whose title bar (back/forward, settings and the window buttons) blends with the page background, gradients included.
+- **Auto-update** — checks GitHub for a new release and, after you confirm, replaces the exe and restarts.
 - **Tray icon** — now playing, play/pause, previous/next, show/hide, settings and quit from the notification area. Click the icon to hide the window and keep listening.
 - **Light on resources** — event-driven scripts, and WebView2 trims its memory while the window is minimized or hidden.
 - **Browser extensions** — install extensions from the Chrome Web Store or Edge Add-ons right inside the app.
@@ -99,7 +101,7 @@ Notes:
 
 ## Plugins
 
-Open the **Takaro settings** button (sliders icon) in the YouTube Music top bar, or **Settings** in the tray menu. The panel has three tabs: **Plugins**, **Extensions** and **General** (language, version and links). Changes are saved right away; when one needs a reload, a **Reload** bar appears at the bottom.
+Open the **Takaro settings** button (sliders icon) in the YouTube Music top bar, or **Settings** in the tray menu. The panel has three tabs: **Plugins**, **Extensions** and **General** (language, version and links). The **General** tab also sets what the window's **X** does: quit, or minimize to the tray. Changes are saved right away; when one needs a reload, a **Reload** bar appears at the bottom.
 
 | Plugin | What it does | Options |
 |---|---|---|
@@ -111,7 +113,6 @@ Open the **Takaro settings** button (sliders icon) in the YouTube Music top bar,
 | **Playback speed** | Speed control from 0.07× to 16× in the player's ⋮ menu. Mouse wheel for 0.01 steps, click the value to reset to 1×. | — |
 | **Quality selector** | Button over the player to pick the stream quality. | — |
 | **Video or cover** | Choose what the player shows: a Song/Video switch, always the cover art (no video), or nothing (the queue fills the page). | Player shows |
-| **Navigation** | Back / forward buttons in the top bar. | — |
 
 Takaro also fixes the player-bar ⋮ menu so that clicking it again closes it.
 
@@ -203,6 +204,8 @@ Takaro/
 │  │  ├─ main.rs              # Window, IPC commands, Rich Presence payload
 │  │  ├─ discord.rs           # Minimal Discord IPC client (named pipe, no deps)
 │  │  ├─ extensions.rs        # Browser extensions: store download, install, list, remove
+│  │  ├─ window.rs            # Frameless main window + title bar actions
+│  │  ├─ updater.rs           # Checks GitHub releases and replaces the exe
 │  │  ├─ tray.rs              # Tray icon and menu
 │  │  ├─ perf.rs              # WebView2 low-memory mode while minimized/hidden
 │  │  ├─ i18n/                # App translations: <code>.json (bundled at build time)
@@ -296,6 +299,7 @@ Constants at the top of `src-tauri/src/main.rs`:
 | `SITE_URL` | the project website | Link of the second card button (“Get Takaro”) |
 | `STATUS_DISPLAY_TYPE` | `2` | What follows "Listening to" in the member list: `0` app name, `1` artist, `2` song |
 | `SMALL_IMAGE_KEY` | `""` | Optional Art Asset key shown as a small badge over the cover |
+| `UPDATE_REPO` (`updater.rs`) | `2nxty/Takaro` | GitHub repository checked for new releases. Forks: change it to yours. |
 
 **Setting up your Discord application:** create an application in the [Discord Developer Portal](https://discord.com/developers/applications), name it as you want the card to read ("Listening to *Name*") and upload an app icon. Then use its **Application ID**:
 

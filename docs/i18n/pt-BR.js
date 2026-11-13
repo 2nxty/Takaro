@@ -81,8 +81,6 @@ TakaroI18n.add("pt-BR", "Português (Brasil)", {
     "quality": "Escolha a qualidade do stream num botão sobre o player.",
     "videoName": "Vídeo ou capa",
     "video": "Mostre o clipe, só a capa da música, ou esconda o player.",
-    "navigationName": "Navegação",
-    "navigation": "Botões de voltar e avançar na barra superior.",
     "note": "Os plugins foram portados do pear-desktop (MIT)."
   },
   "extensions": {

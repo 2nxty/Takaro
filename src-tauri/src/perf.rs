@@ -5,7 +5,7 @@
 //! the normal level comes back as soon as the window is shown again.
 
 use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::{WebviewWindow, WindowEvent};
+use tauri::WebviewWindow;
 use webview2_com::Microsoft::Web::WebView2::Win32::{
     ICoreWebView2_19, COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_LOW, COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_NORMAL,
 };
@@ -13,11 +13,11 @@ use windows_core::Interface;
 
 static LOW: AtomicBool = AtomicBool::new(false);
 
-pub fn set_low_memory(window: &WebviewWindow, low: bool) {
+pub fn set_low_memory(webview: &WebviewWindow, low: bool) {
     if LOW.swap(low, Ordering::SeqCst) == low {
         return; // already at that level
     }
-    let _ = window.with_webview(move |wv| unsafe {
+    let _ = webview.with_webview(move |wv| unsafe {
         let level = if low { COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_LOW } else { COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_NORMAL };
         if let Ok(core) = wv.controller().CoreWebView2() {
             if let Ok(core19) = core.cast::<ICoreWebView2_19>() {
@@ -25,11 +25,4 @@ pub fn set_low_memory(window: &WebviewWindow, low: bool) {
             }
         }
     });
-}
-
-/// Window event hook for the main window.
-pub fn on_window_event(window: &WebviewWindow, event: &WindowEvent) {
-    if let WindowEvent::Resized(_) = event {
-        set_low_memory(window, window.is_minimized().unwrap_or(false));
-    }
 }

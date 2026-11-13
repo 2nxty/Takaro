@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Takaro — YouTube Music for desktop, with Discord Rich Presence</title>
+  <meta name="description" content="A tiny YouTube Music desktop player for Windows that shows what you're listening to on Discord. No Electron, about 4 MB.">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta property="og:title" content="Takaro">
+  <meta property="og:description" content="YouTube Music for desktop, with Discord Rich Presence. No Electron, about 4 MB.">
+  <meta property="og:url" content="https://takaro.nxty.cc/">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="nav.skip">Skip to content</a>
+
+  <div class="announce">
+    <span data-i18n="announce.text">Takaro is open source under the MIT license.</span>
+    <a href="https://github.com/2nxty/Takaro" data-i18n="announce.link">Star it on GitHub</a>
+  </div>
+
+  <header class="nav-wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="#top" aria-label="Takaro">
+        <img src="icon.svg" alt="" width="28" height="28">
+        <span>Takaro</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#plugins" data-i18n="nav.plugins">Plugins</a>
+        <a href="#extensions" data-i18n="nav.extensions">Extensions</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+        <a href="https://github.com/2nxty/Takaro">GitHub</a>
+      </div>
+      <div class="nav-actions">
+        <label class="lang">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.95a15.7 15.7 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.9 8ZM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96ZM4.26 14a8.2 8.2 0 0 1 0-4h3.38a16.5 16.5 0 0 0 0 4H4.26Zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A8 8 0 0 1 5.08 16Zm2.95-8H5.08a8 8 0 0 1 4.33-3.56A15.7 15.7 0 0 0 8.03 8ZM12 19.96A14.1 14.1 0 0 1 10.09 16h3.82A14.1 14.1 0 0 1 12 19.96ZM14.34 14H9.66a14.7 14.7 0 0 1 0-4h4.68a14.7 14.7 0 0 1 0 4Zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56ZM16.36 14a16.5 16.5 0 0 0 0-4h3.38a8.2 8.2 0 0 1 0 4h-3.38Z"/></svg>
+          <select id="lang" data-i18n-attr="aria-label:nav.language" aria-label="Language">
+            <option value="en">English</option>
+            <option value="pt-BR">Português (Brasil)</option>
+            <option value="es">Español</option>
+          </select>
+        </label>
+        <a class="btn btn-primary btn-sm" href="#download" data-i18n="nav.cta">Download</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero container" id="top">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="hero.eyebrow">YouTube Music · Discord · Windows</p>
+        <h1 data-i18n="hero.title">Your music on desktop. Your status on Discord.</h1>
+        <p class="lead" data-i18n="hero.subtitle">Takaro wraps the real YouTube Music in a tiny native window and shows what you're playing on your Discord profile, with cover art, a live progress bar and a button for friends to listen too.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M3 5.5 10.4 4.5v7H3v-6Zm0 13 7.4 1v-7H3v6Zm8.2 1.1L21 21v-8.5h-9.8v7.1Zm0-15.2v7.1H21V3l-9.8 1.4Z"/></svg>
+            <span data-i18n="hero.download">Download for Windows</span>
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/2nxty/Takaro" data-i18n="hero.github">View on GitHub</a>
+        </div>
+        <ul class="meta">
+          <li data-i18n="hero.meta1">~4 MB portable .exe</li>
+          <li data-i18n="hero.meta2">No Electron</li>
+          <li data-i18n="hero.meta3">Free &amp; open source</li>
+        </ul>
+      </div>
+
+      <div class="hero-art" aria-hidden="true">
+        <svg class="lattice" viewBox="0 0 400 400">
+          <defs>
+            <linearGradient id="spec" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ff3040"/>
+              <stop offset=".45" stop-color="#fafafa"/>
+              <stop offset=".55" stop-color="#fafafa"/>
+              <stop offset="1" stop-color="#781ec8"/>
+            </linearGradient>
+            <filter id="blur"><feGaussianBlur stdDeviation="6"/></filter>
+          </defs>
+          <g class="spin-a">
+            <rect x="70" y="70" width="260" height="260" rx="20" class="ln blur" transform="rotate(12 200 200)"/>
+            <rect x="70" y="70" width="260" height="260" rx="20" class="ln" transform="rotate(12 200 200)"/>
+          </g>
+          <g class="spin-b">
+            <rect x="95" y="95" width="210" height="210" rx="18" class="ln spec" transform="rotate(-18 200 200)"/>
+            <rect x="95" y="95" width="210" height="210" rx="18" class="ln spec blur" transform="rotate(-18 200 200)"/>
+          </g>
+          <rect x="45" y="45" width="310" height="310" rx="20" class="ln faint" transform="rotate(32 200 200)"/>
+          <rect x="125" y="125" width="150" height="150" rx="14" class="ln faint" transform="rotate(45 200 200)"/>
+        </svg>
+        <img class="hero-icon" src="icon.svg" alt="" width="132" height="132">
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="demo-title">
+      <div class="frame demo">
+        <div class="demo-head">
+          <span class="chip" id="demo-title" data-i18n="demo.label">Discord Rich Presence</span>
+          <p class="demo-caption" data-i18n="demo.caption">This is how your friends see you while Takaro plays.</p>
+        </div>
+
+        <div class="demo-stage">
+          <article class="rp-card" id="rp">
+            <p class="rp-top"><span data-i18n="demo.listening">Listening to</span> <strong>Takaro</strong></p>
+            <div class="rp-body">
+              <div class="rp-art" aria-hidden="true"><img src="icon.svg" alt="" width="44" height="44"></div>
+              <div class="rp-info">
+                <p class="rp-title">Midnight Static</p>
+                <p class="rp-sub">Neon Harbor</p>
+                <p class="rp-sub rp-album">Lattice</p>
+                <p class="rp-sub rp-paused" hidden>⏸ <span data-i18n="demo.paused">Paused</span> · <span id="rp-paused-time">01:23 / 03:41</span></p>
+                <div class="rp-bar">
+                  <span id="rp-elapsed">01:23</span>
+                  <span class="rp-track"><span class="rp-fill" id="rp-fill"></span></span>
+                  <span id="rp-total">03:41</span>
+                </div>
+              </div>
+            </div>
+            <div class="rp-buttons">
+              <span class="rp-btn" data-i18n="demo.listenButton">Listen on YouTube Music</span>
+              <span class="rp-btn">Get Takaro</span>
+            </div>
+          </article>
+
+          <div class="member" aria-hidden="true">
+            <span class="avatar"><span class="dot"></span></span>
+            <span>
+              <span class="member-name">you</span>
+              <span class="member-status"><span data-i18n="demo.memberStatus">Listening to</span> <strong>Midnight Static</strong></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Demo">
+          <button role="tab" class="tab" aria-selected="true" data-state="playing">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+            <span data-i18n="demo.tabPlaying">Playing</span>
+          </button>
+          <button role="tab" class="tab" aria-selected="false" data-state="paused">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            <span data-i18n="demo.tabPaused">Paused</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section" id="features" aria-labelledby="features-title">
+      <h2 id="features-title" data-i18n="features.title">Small app, everything you need</h2>
+      <p class="section-lead" data-i18n="features.subtitle">The full YouTube Music you already use, without a heavy browser runtime on top.</p>
+
+      <div class="mosaic">
+        <article class="card card-wide">
+          <h3 data-i18n="features.presence.title">Rich Presence done right</h3>
+          <p data-i18n="features.presence.text">Cover art, artist, album, a live progress bar and buttons for your friends. When you pause, your status stays and shows that you paused, instead of disappearing.</p>
+          <a class="link" href="https://github.com/2nxty/Takaro#discord-rich-presence" data-i18n="features.more">Learn more</a>
+        </article>
+        <article class="card">
+          <div class="stat">~4 MB</div>
+          <h3 data-i18n="features.light.title">Actually lightweight</h3>
+          <p data-i18n="features.light.text">Built with Tauri and the WebView2 already in Windows. No bundled Chromium, no Electron.</p>
+        </article>
+        <article class="card">
+          <h3 data-i18n="features.account.title">Your account, your library</h3>
+          <p data-i18n="features.account.text">It's the official YouTube Music web player: sign in and get your playlists, likes, mixes and lyrics.</p>
+        </article>
+        <article class="card">
+          <h3 data-i18n="features.plugins.title">Plugins built in</h3>
+          <p data-i18n="features.plugins.text">SponsorBlock, precise volume, playback speed and more. Turn each one on or off in the Takaro panel.</p>
+        </article>
+        <article class="card">
+          <h3 data-i18n="features.open.title">Open source</h3>
+          <p data-i18n="features.open.text">MIT licensed. Read the code, open an issue, add a plugin or a translation.</p>
+          <a class="link" href="https://github.com/2nxty/Takaro" data-i18n="features.code">See the code</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="container section" id="plugins" aria-labelledby="plugins-title">
+      <h2 id="plugins-title" data-i18n="plugins.title">Plugins</h2>
+      <p class="section-lead" data-i18n="plugins.subtitle">Open the Takaro panel from the top bar of YouTube Music to configure them.</p>
+
+      <div class="plugin-grid">
+        <article class="plugin"><h3>SponsorBlock</h3><p data-i18n="plugins.sponsorblock">Skips intros, outros and non-music parts of music videos using the SponsorBlock database.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.dislikedName">Skip disliked songs</h3><p data-i18n="plugins.disliked">Jumps to the next track when you dislike one.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.autoplayName">Disable autoplay</h3><p data-i18n="plugins.autoplay">Opens the app without blasting music. Starts the first song paused.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.resumeName">Resume last session</h3><p data-i18n="plugins.resume">Reopens the song, playlist or mix you were listening to, right where it stopped.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.volumeName">Precise volume</h3><p data-i18n="plugins.volume">Mouse wheel and arrow keys, 1% steps, a small indicator above the slider, and your volume remembered.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.speedName">Playback speed</h3><p data-i18n="plugins.speed">From 0.07× to 16×, right in the player's ⋮ menu.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.qualityName">Quality selector</h3><p data-i18n="plugins.quality">Pick the stream quality from a button on the player.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.videoName">Video or cover</h3><p data-i18n="plugins.video">Show the music video, only the cover art, or hide the player entirely.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.navigationName">Navigation</h3><p data-i18n="plugins.navigation">Back and forward buttons in the top bar.</p></article>
+      </div>
+      <p class="note" data-i18n="plugins.note">Plugins are ported from pear-desktop (MIT).</p>
+    </section>
+
+    <section class="container section" id="extensions" aria-labelledby="extensions-title">
+      <h2 id="extensions-title" data-i18n="extensions.title">Browser extensions</h2>
+      <p class="section-lead" data-i18n="extensions.subtitle">Install extensions from the Chrome Web Store or Edge Add-ons right inside Takaro.</p>
+
+      <ol class="steps">
+        <li class="plugin"><span class="step-n">1</span><h3 data-i18n="extensions.step1Title">Open a store</h3><p data-i18n="extensions.step1">In Takaro settings, open the Extensions tab and pick Chrome Web Store or Edge Add-ons.</p></li>
+        <li class="plugin"><span class="step-n">2</span><h3 data-i18n="extensions.step2Title">Install in Takaro</h3><p data-i18n="extensions.step2">On any extension page, use the "Install in Takaro" box in the corner.</p></li>
+        <li class="plugin"><span class="step-n">3</span><h3 data-i18n="extensions.step3Title">Reload and manage</h3><p data-i18n="extensions.step3">Reload Takaro to use it. Turn extensions on or off, open their options or remove them in the same tab.</p></li>
+      </ol>
+      <p class="note" data-i18n="extensions.note">Extensions that change pages (blockers, themes, tweaks) work best. Toolbar popups aren't available, and some Chrome APIs aren't supported.</p>
+    </section>
+
+    <section class="container section" id="download" aria-labelledby="download-title">
+      <div class="frame cta">
+        <img src="icon.svg" alt="" width="56" height="56">
+        <h2 id="download-title" data-i18n="download.title">Get Takaro</h2>
+        <p data-i18n="download.text">One portable .exe. No installer, no account besides your own YouTube one.</p>
+        <a class="btn btn-primary" href="https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe" data-i18n="download.button">Download for Windows</a>
+        <p class="cta-meta" data-i18n="download.meta">Windows 10 or 11 · x64 · requires Microsoft Edge WebView2 (already included in Windows)</p>
+        <p class="cta-note" data-i18n="download.smartscreen">The .exe isn't code-signed yet, so Windows SmartScreen may warn you. Click "More info" → "Run anyway".</p>
+      </div>
+    </section>
+
+    <section class="container section faq" id="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title" data-i18n="faq.title">Questions</h2>
+      <details><summary data-i18n="faq.q1">Is Takaro an official YouTube or Discord app?</summary><p data-i18n="faq.a1">No. Takaro is an independent open-source project and is not affiliated with Google, YouTube or Discord.</p></details>
+      <details><summary data-i18n="faq.q2">Do I need Discord open?</summary><p data-i18n="faq.a2">Only for the Rich Presence. Takaro works as a normal music player without it, and connects automatically when Discord opens.</p></details>
+      <details><summary data-i18n="faq.q3">Where is my data stored?</summary><p data-i18n="faq.a3">Your YouTube login and settings stay on your computer, in the WebView2 profile under %LOCALAPPDATA%\com.takaro.player. Takaro has no server and collects nothing.</p></details>
+      <details><summary data-i18n="faq.q4">Does it work on macOS or Linux?</summary><p data-i18n="faq.a4">Not yet. Takaro is Windows-only for now. Contributions are welcome.</p></details>
+      <details><summary data-i18n="faq.q5">How do I add a translation?</summary><p data-i18n="faq.a5">Copy an existing JSON file, translate the values and open a pull request. The README explains where the files are, for both the app and this site.</p></details>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a class="brand" href="#top"><img src="icon.svg" alt="" width="24" height="24"><span>Takaro</span></a>
+        <p data-i18n="footer.tagline">YouTube Music for desktop, with Discord Rich Presence.</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="https://github.com/2nxty/Takaro">GitHub</a></li>
+        <li><a href="https://github.com/2nxty/Takaro/releases" data-i18n="footer.releases">Releases</a></li>
+        <li><a href="https://github.com/2nxty/Takaro/issues" data-i18n="footer.issues">Report an issue</a></li>
+        <li><a href="https://github.com/pear-devs/pear-desktop">pear-desktop</a></li>
+      </ul>
+    </div>
+    <p class="container legal" data-i18n="footer.disclaimer">MIT License. YouTube Music is a trademark of Google LLC and Discord is a trademark of Discord Inc. Takaro is not affiliated with either.</p>
+  </footer>
+
+  <script src="app.js" defer></script>
+  <!-- Languages: one line per file in i18n/. The order here is the order in the selector. -->
+  <script src="i18n/en.js" defer></script>
+  <script src="i18n/pt-BR.js" defer></script>
+  <script src="i18n/es.js" defer></script>
+</body>
+</html>

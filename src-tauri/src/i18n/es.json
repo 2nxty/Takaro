@@ -1,0 +1,133 @@
+{
+  "_name": "Español",
+  "presence": {
+    "listen": "Escuchar en YouTube Music",
+    "paused": "En pausa",
+    "getTakaro": "Get Takaro"
+  },
+  "ui": {
+    "settingsButton": "Ajustes de Takaro",
+    "close": "Cerrar",
+    "tabs": {
+      "plugins": "Plugins",
+      "extensions": "Extensiones",
+      "general": "General"
+    },
+    "language": "Idioma",
+    "auto": "Automático (idioma de YouTube Music)",
+    "reloadNeeded": "Recarga para aplicar los cambios.",
+    "reloadNow": "Recargar",
+    "version": "Versión {version}",
+    "tagline": "YouTube Music en el escritorio, con Discord Rich Presence.",
+    "site": "Sitio web",
+    "issues": "Reportar un problema",
+    "credits": "Plugins portados de pear-desktop (MIT)."
+  },
+  "tray": {
+    "play": "Reproducir",
+    "pause": "Pausar",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "show": "Mostrar Takaro",
+    "settings": "Ajustes",
+    "quit": "Salir"
+  },
+  "extensions": {
+    "title": "Extensiones",
+    "note": "Instala extensiones de Chrome Web Store o de Edge Add-ons. Funcionan mejor las que modifican las páginas (bloqueadores, temas, ajustes); los popups de la barra de herramientas no están disponibles en Takaro.",
+    "chromeStore": "Chrome Web Store",
+    "edgeStore": "Edge Add-ons",
+    "empty": "Aún no hay extensiones instaladas.",
+    "loading": "Cargando…",
+    "remove": "Quitar",
+    "install": "Instalar en Takaro",
+    "installing": "Instalando…",
+    "installed": "{name} instalada. Recarga Takaro para usarla.",
+    "reloadTakaro": "Recargar Takaro",
+    "error": "No se pudo instalar: {error}",
+    "retry": "Reintentar",
+    "unavailable": "Extensiones no disponibles: {error}",
+    "options": "Opciones"
+  },
+  "plugins": {
+    "sponsorblock": {
+      "name": "SponsorBlock",
+      "description": "Salta intros, cierres y partes sin música de los videoclips usando la base de SponsorBlock.",
+      "options": {
+        "categories": "Categorías"
+      },
+      "choices": {
+        "categories": {
+          "sponsor": "Patrocinio",
+          "intro": "Introducción",
+          "outro": "Cierre",
+          "interaction": "Recordatorio de suscripción/like",
+          "selfpromo": "Autopromoción",
+          "music_offtopic": "Parte sin música"
+        }
+      }
+    },
+    "skip-disliked-songs": {
+      "name": "Saltar canciones con no me gusta",
+      "description": "Salta automáticamente las canciones que marcas con \"no me gusta\"."
+    },
+    "disable-autoplay": {
+      "name": "Desactivar reproducción automática",
+      "description": "Hace que las canciones empiecen en pausa.",
+      "options": {
+        "applyOnce": "Solo en la primera canción al abrir la app"
+      }
+    },
+    "resume-session": {
+      "name": "Reanudar última sesión",
+      "description": "Al abrir la app, vuelve a la canción, lista o mix que estabas escuchando, en el mismo punto.",
+      "options": {
+        "restoreTime": "Continuar desde donde se quedó la canción",
+        "startPaused": "Empezar en pausa"
+      }
+    },
+    "precise-volume": {
+      "name": "Volumen preciso",
+      "description": "Controla el volumen con la rueda del ratón (barra del reproductor o video) y con las flechas ↑/↓.",
+      "options": {
+        "steps": "Paso del volumen (%)",
+        "arrowsShortcut": "Usar las flechas ↑/↓ para el volumen"
+      }
+    },
+    "playback-speed": {
+      "name": "Velocidad de reproducción",
+      "description": "Añade un control de velocidad (0,07× a 16×) al menú ⋮ de la barra del reproductor. Usa la rueda del ratón para ajuste fino.",
+      "label": "Velocidad",
+      "reset": "Volver a 1×",
+      "wheelHint": "Rueda del ratón: ajuste fino"
+    },
+    "quality-changer": {
+      "name": "Selector de calidad",
+      "description": "Añade un botón sobre el reproductor para elegir la calidad del video/audio.",
+      "button": "Calidad",
+      "current": "Calidad actual: {quality}"
+    },
+    "video-toggle": {
+      "name": "Video o portada",
+      "description": "Elige qué muestra el reproductor: el videoclip, solo la portada, o nada.",
+      "song": "Canción",
+      "video": "Video",
+      "options": {
+        "display": "El reproductor muestra"
+      },
+      "choices": {
+        "display": {
+          "toggle": "Botón Canción/Video en el reproductor",
+          "cover": "Siempre solo la portada (sin video)",
+          "hidden": "Nada (oculta el reproductor, cola a pantalla completa)"
+        }
+      }
+    },
+    "navigation": {
+      "name": "Botones de navegación",
+      "description": "Botones de atrás y adelante en la barra superior.",
+      "back": "Atrás",
+      "forward": "Adelante"
+    }
+  }
+}

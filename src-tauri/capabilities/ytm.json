@@ -1,0 +1,18 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "ytm",
+  "description": "Lets the script injected into YouTube Music talk to the app.",
+  "windows": ["main"],
+  "remote": { "urls": ["https://music.youtube.com/*"] },
+  "permissions": [
+    "allow-track-update",
+    "allow-playback-stopped",
+    "allow-list-extensions",
+    "allow-set-extension-enabled",
+    "allow-remove-extension",
+    "allow-open-store",
+    "allow-open-extension-options",
+    "allow-open-external",
+    "allow-set-tray-labels"
+  ]
+}

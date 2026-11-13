@@ -1,0 +1,133 @@
+{
+  "_name": "English",
+  "presence": {
+    "listen": "Listen on YouTube Music",
+    "paused": "Paused",
+    "getTakaro": "Get Takaro"
+  },
+  "ui": {
+    "settingsButton": "Takaro settings",
+    "close": "Close",
+    "tabs": {
+      "plugins": "Plugins",
+      "extensions": "Extensions",
+      "general": "General"
+    },
+    "language": "Language",
+    "auto": "Automatic (YouTube Music language)",
+    "reloadNeeded": "Reload to apply your changes.",
+    "reloadNow": "Reload",
+    "version": "Version {version}",
+    "tagline": "YouTube Music for desktop, with Discord Rich Presence.",
+    "site": "Website",
+    "issues": "Report an issue",
+    "credits": "Plugins ported from pear-desktop (MIT)."
+  },
+  "tray": {
+    "play": "Play",
+    "pause": "Pause",
+    "previous": "Previous",
+    "next": "Next",
+    "show": "Show Takaro",
+    "settings": "Settings",
+    "quit": "Quit"
+  },
+  "extensions": {
+    "title": "Extensions",
+    "note": "Install extensions from the Chrome Web Store or Edge Add-ons. Extensions that change pages (blockers, themes, tweaks) work best; toolbar popups aren't available in Takaro.",
+    "chromeStore": "Chrome Web Store",
+    "edgeStore": "Edge Add-ons",
+    "empty": "No extensions installed yet.",
+    "loading": "Loading…",
+    "remove": "Remove",
+    "install": "Install in Takaro",
+    "installing": "Installing…",
+    "installed": "{name} installed. Reload Takaro to use it.",
+    "reloadTakaro": "Reload Takaro",
+    "error": "Couldn't install: {error}",
+    "retry": "Try again",
+    "unavailable": "Extensions aren't available: {error}",
+    "options": "Options"
+  },
+  "plugins": {
+    "sponsorblock": {
+      "name": "SponsorBlock",
+      "description": "Skips intros, outros and non-music parts of music videos, using the SponsorBlock database.",
+      "options": {
+        "categories": "Categories"
+      },
+      "choices": {
+        "categories": {
+          "sponsor": "Sponsor",
+          "intro": "Intro",
+          "outro": "Outro",
+          "interaction": "Like/subscribe reminder",
+          "selfpromo": "Self-promotion",
+          "music_offtopic": "Non-music section"
+        }
+      }
+    },
+    "skip-disliked-songs": {
+      "name": "Skip disliked songs",
+      "description": "Automatically skips songs you dislike."
+    },
+    "disable-autoplay": {
+      "name": "Disable autoplay",
+      "description": "Makes songs start paused.",
+      "options": {
+        "applyOnce": "Only for the first song after opening the app"
+      }
+    },
+    "resume-session": {
+      "name": "Resume last session",
+      "description": "When the app opens, goes back to the song, playlist or mix you were listening to, at the same point.",
+      "options": {
+        "restoreTime": "Resume from where the song stopped",
+        "startPaused": "Start paused"
+      }
+    },
+    "precise-volume": {
+      "name": "Precise volume",
+      "description": "Change the volume with the mouse wheel (player bar or video) and with the ↑/↓ arrow keys.",
+      "options": {
+        "steps": "Volume step (%)",
+        "arrowsShortcut": "Use the ↑/↓ arrow keys for volume"
+      }
+    },
+    "playback-speed": {
+      "name": "Playback speed",
+      "description": "Adds a speed control (0.07× to 16×) to the ⋮ menu of the player bar. Use the mouse wheel for fine adjustments.",
+      "label": "Speed",
+      "reset": "Back to 1×",
+      "wheelHint": "Mouse wheel: fine adjustment"
+    },
+    "quality-changer": {
+      "name": "Quality selector",
+      "description": "Adds a button over the player to choose the video/audio quality.",
+      "button": "Quality",
+      "current": "Current quality: {quality}"
+    },
+    "video-toggle": {
+      "name": "Video or cover",
+      "description": "Choose what the player shows: the music video, only the cover art, or nothing at all.",
+      "song": "Song",
+      "video": "Video",
+      "options": {
+        "display": "Player shows"
+      },
+      "choices": {
+        "display": {
+          "toggle": "Song/Video switch on the player",
+          "cover": "Always the cover only (no video)",
+          "hidden": "Nothing (hide the player, queue on full page)"
+        }
+      }
+    },
+    "navigation": {
+      "name": "Navigation buttons",
+      "description": "Back and forward buttons in the top bar.",
+      "back": "Back",
+      "forward": "Forward"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+[package]
+name = "takaro"
+version = "0.1.1"
+edition = "2021"
+description = "Lightweight YouTube Music desktop player with Discord Rich Presence"
+license = "MIT"
+repository = "https://github.com/2nxty/Takaro"
+homepage = "https://takaro.nxty.cc"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+serde_json = "1"
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(windows)'.dependencies]
+# Same versions Tauri uses; needed for the WebView2 extensions API.
+webview2-com = "0.39"
+windows-core = "0.62"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

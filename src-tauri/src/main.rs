@@ -231,6 +231,7 @@ fn main() {
             extensions::set_extension_enabled,
             extensions::remove_extension,
             extensions::install_extension,
+            extensions::extension_installed,
             extensions::open_store,
             extensions::open_extension_options,
             extensions::reload_main,

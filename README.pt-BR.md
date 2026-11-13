@@ -94,7 +94,7 @@ O Takaro também corrige o menu ⋮ da barra do player para que um segundo cliqu
 O Takaro carrega extensões de navegador pelo WebView2.
 
 1. Abra **Configurações do Takaro → Extensões** e clique em **Chrome Web Store** ou **Edge Add-ons**. A loja abre numa nova janela.
-2. Abra a página de uma extensão. Uma caixa **Instalar no Takaro** aparece no canto inferior direito (o botão da própria loja só funciona no Chrome/Edge).
+2. Abra a página de uma extensão. Uma caixa **Instalar no Takaro** aparece no canto inferior direito (se ela já estiver instalada, a caixa oferece **Atualizar**). Os botões da própria loja ("Usar no Chrome" / "Obter") ficam escondidos, porque só funcionam no Chrome/Edge; os botões de voltar/avançar ficam no canto inferior esquerdo.
 3. Depois de instalar, clique em **Recarregar o Takaro** nessa caixa.
 
 As extensões instaladas aparecem na mesma seção, onde dá para ligar, desligar ou remover cada uma.

@@ -16,6 +16,7 @@ fn main() {
                 "set_extension_enabled",
                 "remove_extension",
                 "install_extension",
+                "extension_installed",
                 "open_store",
                 "open_extension_options",
                 "reload_main",

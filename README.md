@@ -121,7 +121,7 @@ Takaro also fixes the player-bar ⋮ menu so that clicking it again closes it.
 Takaro can load browser extensions through WebView2.
 
 1. Open **Takaro settings → Extensions** and click **Chrome Web Store** or **Edge Add-ons**. The store opens in a new window.
-2. Open an extension's page. An **Install in Takaro** box appears in the bottom-right corner (the store's own "Add to Chrome" button only works in Chrome/Edge).
+2. Open an extension's page. An **Install in Takaro** box appears in the bottom-right corner (if it's already installed, it offers **Update** instead). The store's own "Add to Chrome" / "Get" buttons are hidden, since they only work in Chrome/Edge; back/forward buttons sit in the bottom-left corner.
 3. After it installs, click **Reload Takaro** in that box.
 
 Installed extensions are listed in the same section, where you can turn each one on/off or remove it.

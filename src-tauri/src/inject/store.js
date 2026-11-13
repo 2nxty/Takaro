@@ -61,15 +61,28 @@
     box.style.display = 'flex';
   };
 
-  const idle = () => show('Takaro', t('extensions.install'), install);
+  // Already installed → offer an update (reinstalls the latest version from the store).
+  let updating = false;
+  const idle = async () => {
+    const id = currentId;
+    let installed = false;
+    try {
+      installed = await invoke('extension_installed', { id });
+    } catch {}
+    if (id !== currentId) return;
+    updating = installed;
+    if (installed) show(t('extensions.alreadyInstalled'), t('extensions.update'), install);
+    else show('Takaro', t('extensions.install'), install);
+  };
 
   async function install() {
     const id = currentId;
-    show(t('extensions.installing'), t('extensions.installing'), null, true);
+    const busy = updating ? t('extensions.updating') : t('extensions.installing');
+    show(busy, busy, null, true);
     try {
       const info = await invoke('install_extension', { store, id });
       if (id !== currentId) return;
-      show(t('extensions.installed', { name: info.name }), t('extensions.reloadTakaro'), () => invoke('reload_main'));
+      show(t(updating ? 'extensions.updated' : 'extensions.installed', { name: info.name }), t('extensions.reloadTakaro'), () => invoke('reload_main'));
     } catch (e) {
       if (id !== currentId) return;
       show(t('extensions.error', { error: String(e) }), t('extensions.retry'), install);
@@ -84,8 +97,27 @@
     else box.style.display = 'none';
   };
 
+  // The stores' own "Add to Chrome" / "Get" buttons don't work here: hide them.
+  // Matched by code identifiers (same in every language), not by their text.
+  const style = h('style', {},
+    'button[jsname="wQO0od"], button[id^="installButton-"] { display: none !important; }');
+
+  // Back / forward (the store window has no browser toolbar).
+  const navBtn = (label, d, action) =>
+    h('button', { type: 'button', title: label, 'aria-label': label, onclick: action, style: {
+      width: '36px', height: '36px', border: '0', borderRadius: '50%', background: 'transparent', color: '#fafafa',
+      display: 'grid', placeItems: 'center', cursor: 'pointer', padding: '0',
+    } }, h('svg:svg', { viewBox: '0 0 24 24', width: '22', height: '22', fill: 'currentColor' }, h('svg:path', { d })));
+  const nav = h('div', { style: {
+    position: 'fixed', left: '24px', bottom: '24px', zIndex: '2147483647', display: 'flex', gap: '2px', padding: '4px',
+    background: '#0a0a0a', border: '1px solid #262626', borderRadius: '9999px', boxShadow: 'rgba(0,0,0,.35) 0 8px 24px',
+  } },
+    navBtn(t('titlebar.back'), 'M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z', () => history.back()),
+    navBtn(t('titlebar.forward'), 'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z', () => history.forward()));
+
   const mount = () => {
-    document.body.append(box);
+    document.head.append(style);
+    document.body.append(nav, box);
     sync();
     setInterval(sync, 1000); // the stores are single-page apps
   };

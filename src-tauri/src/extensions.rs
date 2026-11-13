@@ -364,6 +364,16 @@ pub async fn install_extension(app: AppHandle, store: String, id: String) -> Res
     Ok(info)
 }
 
+/// Whether the store extension `id` is installed in Takaro (used by the store window).
+#[tauri::command]
+pub fn extension_installed(app: AppHandle, id: String) -> Res<bool> {
+    if !valid_store_id(&id) {
+        return Ok(false);
+    }
+    let root = ext_root(&app)?;
+    Ok(load_registry(&root).values().any(|v| *v == id) && root.join(&id).join("manifest.json").exists())
+}
+
 /// Opens the extension's options page (chrome-extension://<id>/<page>) in its own window.
 #[tauri::command]
 pub async fn open_extension_options(app: AppHandle, id: String, title: String) -> Res<()> {

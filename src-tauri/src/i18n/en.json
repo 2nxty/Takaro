@@ -72,7 +72,11 @@
     "error": "Couldn't install: {error}",
     "retry": "Try again",
     "unavailable": "Extensions aren't available: {error}",
-    "options": "Options"
+    "options": "Options",
+    "alreadyInstalled": "Already installed in Takaro",
+    "update": "Update",
+    "updating": "Updating…",
+    "updated": "{name} updated. Reload Takaro to use it."
   },
   "plugins": {
     "sponsorblock": {

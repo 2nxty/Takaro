@@ -72,7 +72,11 @@
     "error": "Não foi possível instalar: {error}",
     "retry": "Tentar de novo",
     "unavailable": "Extensões indisponíveis: {error}",
-    "options": "Opções"
+    "options": "Opções",
+    "alreadyInstalled": "Já instalada no Takaro",
+    "update": "Atualizar",
+    "updating": "Atualizando…",
+    "updated": "{name} atualizada. Recarregue o Takaro para usar."
   },
   "plugins": {
     "sponsorblock": {

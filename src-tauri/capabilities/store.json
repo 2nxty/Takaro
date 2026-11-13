@@ -6,5 +6,5 @@
   "remote": {
     "urls": ["https://chromewebstore.google.com/*", "https://microsoftedge.microsoft.com/*"]
   },
-  "permissions": ["allow-install-extension", "allow-reload-main"]
+  "permissions": ["allow-install-extension", "allow-extension-installed", "allow-reload-main"]
 }

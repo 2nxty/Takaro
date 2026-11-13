@@ -9,13 +9,23 @@
   // Pure CSS, so it survives YTM re-rendering the nav bar.
   const ICON_URI =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff3040'/%3E%3Cstop offset='1' stop-color='%23781ec8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='512' cy='512' r='480' fill='url(%23g)'/%3E%3Cpath d='M400 300v424l360-212z' fill='%23fff'/%3E%3C/svg%3E";
+  // Splash artwork: the icon + "Takaro", like the logo in the nav bar.
+  const SPLASH_URI =
+    'data:image/svg+xml,' +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 268 72"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+        `<stop offset="0" stop-color="#ff3040"/><stop offset="1" stop-color="#781ec8"/></linearGradient></defs>` +
+        `<circle cx="36" cy="36" r="34" fill="url(#g)"/><path d="M28 21v30l25-15z" fill="#fff"/>` +
+        `<text x="86" y="52" fill="#fff" font-family="'Segoe UI Variable Display','Segoe UI',Roboto,sans-serif" ` +
+        `font-size="46" font-weight="600" letter-spacing="-1">Takaro</text></svg>`,
+    );
   T.css(`
     html, body { background: #030303; }
     /* Intro: black screen with the Takaro logo from the first frame; fades out when YTM is ready. */
     html::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
-      background: #030303 url("${ICON_URI}") center / 72px no-repeat; transition: opacity .35s ease;
+      background: #030303 url("${SPLASH_URI}") center / 268px 72px no-repeat; transition: opacity .35s ease;
       animation: tk-intro .6s ease-out both; }
-    @keyframes tk-intro { from { background-size: 56px; } to { background-size: 72px; } }
+    @keyframes tk-intro { from { background-size: 241px 65px; } to { background-size: 268px 72px; } }
     html.tk-ready::after { opacity: 0; }
     html.tk-intro-done::after { content: none; }
     /* Title bar of the frameless window. YTM sizes its layout from --ytmusic-nav-bar-height, so growing
@@ -89,7 +99,20 @@
       content: 'Takaro'; color: #fff; font: 600 20px/24px 'YouTube Sans', Roboto, sans-serif; letter-spacing: -.3px; white-space: nowrap; }
   `);
 
-  // Hide the intro once YouTube Music has loaded (or after 8s at most).
+  // The window is created hidden (no flash); show it once the splash is painted. Only on the first
+  // page of this app session, so reloads/navigation never pop up a window that's in the tray.
+  {
+    let first = true;
+    try {
+      first = !sessionStorage.getItem('takaro:shown');
+      sessionStorage.setItem('takaro:shown', '1');
+    } catch {}
+    if (first) setTimeout(() => T.invoke('titlebar_action', { action: 'show' }).catch(() => {}), 60);
+  }
+
+  // Hide the intro once YouTube Music has loaded (or after 8s at most). T.ready resolves at that point.
+  let markReady;
+  T.ready = new Promise((resolve) => (markReady = resolve));
   {
     const shown = Date.now();
     let done = false;
@@ -99,6 +122,7 @@
       const root = document.documentElement;
       setTimeout(() => {
         root.classList.add('tk-ready');
+        markReady();
         setTimeout(() => root.classList.add('tk-intro-done'), 400);
       }, Math.max(0, 500 - (Date.now() - shown))); // short minimum so it doesn't just flash
     };
@@ -663,14 +687,25 @@
       update();
     }
 
-    // Look for a new release once per launch (not on every reload).
-    try {
-      if (sessionStorage.getItem('takaro:update-checked')) return;
-      sessionStorage.setItem('takaro:update-checked', '1');
-    } catch {}
-    setTimeout(async () => {
+    // Look for a new release once per launch (not on every reload). The flag is only set when the
+    // check actually runs: a navigation in between (e.g. "Resume last session") would cancel the timer.
+    const checked = () => {
       try {
-        const info = await T.invoke('check_update');
+        return !!sessionStorage.getItem('takaro:update-checked');
+      } catch {
+        return false;
+      }
+    };
+    if (checked()) return;
+    (async () => {
+      try {
+        const info = await T.invoke('check_update'); // starts right away, in the background
+        await T.ready; // show it once YouTube Music is on screen
+        if (checked()) return;
+        // Only now: if a navigation (e.g. "Resume last session") interrupted us, the next page checks again.
+        try {
+          sessionStorage.setItem('takaro:update-checked', '1');
+        } catch {}
         let skipped = null;
         try {
           skipped = localStorage.getItem(SKIP_KEY);
@@ -679,7 +714,7 @@
       } catch (e) {
         report(e);
       }
-    }, 8000);
+    })();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();

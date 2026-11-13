@@ -112,7 +112,7 @@ pub async fn install_update(app: AppHandle, url: String) -> Result<(), String> {
     .map_err(|e| e.to_string())??;
 
     // Start the new version a moment after this one exits (they share the WebView2 profile).
-    let cmd = format!("/C ping -n 3 127.0.0.1 >nul & start \"\" \"{}\"", exe.display());
+    let cmd = format!("/C ping -n 4 127.0.0.1 >nul & start \"\" \"{}\"", exe.display());
     Command::new("cmd.exe").raw_arg(cmd).creation_flags(CREATE_NO_WINDOW).spawn().map_err(|e| e.to_string())?;
     app.exit(0);
     Ok(())

@@ -11,12 +11,19 @@
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff3040'/%3E%3Cstop offset='1' stop-color='%23781ec8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='512' cy='512' r='480' fill='url(%23g)'/%3E%3Cpath d='M400 300v424l360-212z' fill='%23fff'/%3E%3C/svg%3E";
   T.css(`
     html, body { background: #030303; }
+    /* Intro: black screen with the Takaro logo from the first frame; fades out when YTM is ready. */
+    html::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
+      background: #030303 url("${ICON_URI}") center / 72px no-repeat; transition: opacity .35s ease;
+      animation: tk-intro .6s ease-out both; }
+    @keyframes tk-intro { from { background-size: 56px; } to { background-size: 72px; } }
+    html.tk-ready::after { opacity: 0; }
+    html.tk-intro-done::after { content: none; }
     /* Title bar of the frameless window. YTM sizes its layout from --ytmusic-nav-bar-height, so growing
        it by 40px pushes everything down; the bar sits in that space, over the page's own background. */
     html, ytmusic-app, ytmusic-app-layout { --ytmusic-nav-bar-height: 104px !important; }
     ytmusic-nav-bar { padding-top: 40px !important; box-sizing: border-box !important; }
     .center-content.ytmusic-nav-bar { height: 64px !important; }
-    #takaro-titlebar { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 2001; display: flex;
+    #takaro-titlebar { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 6; display: flex;
       align-items: stretch; color: #fff; user-select: none; -webkit-user-select: none; }
     #takaro-titlebar .tb-left { display: flex; align-items: center; gap: 2px; padding-left: 10px; }
     #takaro-titlebar .tb-drag { flex: 1; }
@@ -35,6 +42,15 @@
     #takaro-titlebar button:focus { outline: none; }
     #takaro-titlebar button:focus-visible { outline: 1px solid rgba(255,255,255,.5); outline-offset: -2px; }
     body:has(ytmusic-player[player-ui-state="FULLSCREEN"]) #takaro-titlebar { display: none; }
+    /* Compact popup menus (the player's ⋮ menu is very tall on small windows): 36px rows. */
+    ytmusic-menu-popup-renderer tp-yt-paper-listbox > ytmusic-menu-navigation-item-renderer,
+    ytmusic-menu-popup-renderer tp-yt-paper-listbox > ytmusic-menu-service-item-renderer,
+    ytmusic-menu-popup-renderer tp-yt-paper-listbox > ytmusic-menu-service-item-download-renderer { height: auto !important; min-height: 36px !important; }
+    ytmusic-menu-popup-renderer .yt-simple-endpoint.ytmusic-menu-navigation-item-renderer { height: 36px !important; }
+    ytmusic-menu-popup-renderer tp-yt-paper-item { min-height: 36px !important; }
+    ytmusic-menu-popup-renderer tp-yt-paper-listbox > ytmusic-toggle-menu-service-item-renderer { height: auto !important; min-height: 36px !important; }
+    /* While a Takaro dialog is open the page behind doesn't scroll. */
+    html.tk-lock { overflow: hidden !important; }
     /* Page scrollbar: the native one spans the whole window (title bar included), so it's hidden
        and replaced by #takaro-scroll, which runs from below the title bar to above the player bar. */
     html { scrollbar-width: none; }
@@ -72,6 +88,27 @@
     ytmusic-nav-bar ytmusic-logo a::after {
       content: 'Takaro'; color: #fff; font: 600 20px/24px 'YouTube Sans', Roboto, sans-serif; letter-spacing: -.3px; white-space: nowrap; }
   `);
+
+  // Hide the intro once YouTube Music has loaded (or after 8s at most).
+  {
+    const shown = Date.now();
+    let done = false;
+    const hide = () => {
+      if (done) return;
+      done = true;
+      const root = document.documentElement;
+      setTimeout(() => {
+        root.classList.add('tk-ready');
+        setTimeout(() => root.classList.add('tk-intro-done'), 400);
+      }, Math.max(0, 500 - (Date.now() - shown))); // short minimum so it doesn't just flash
+    };
+    // Wait for real content: shelves on browse pages, the queue on the player page.
+    T.waitFor(
+      'ytmusic-section-list-renderer ytmusic-carousel-shelf-renderer, ytmusic-section-list-renderer ytmusic-shelf-renderer, ' +
+        'ytmusic-section-list-renderer ytmusic-grid-renderer, ytmusic-player-queue-item, ytmusic-responsive-list-item-renderer',
+    ).then(() => setTimeout(hide, 300));
+    setTimeout(hide, 8000);
+  }
 
   // ── Icons (Material, 24px) ──
   const ICONS = {
@@ -187,6 +224,7 @@
     const close = () => {
       if (!overlay.isConnected) return;
       overlay.remove();
+      if (!document.querySelector('.tk-overlay')) document.documentElement.classList.remove('tk-lock');
       document.removeEventListener('keydown', onKey, true);
       onClose?.();
     };
@@ -199,6 +237,7 @@
     overlay.append(panel);
     overlay.addEventListener('mousedown', (e) => e.target === overlay && close());
     document.addEventListener('keydown', onKey, true);
+    document.documentElement.classList.add('tk-lock');
     document.body.append(overlay);
     panel.tabIndex = -1; // focus the dialog itself (Esc works) without highlighting a button
     panel.focus({ preventScroll: true });
@@ -561,6 +600,8 @@
       const track = h('div', { id: 'takaro-scroll', hidden: true }, thumb);
       let geo = null;
       const measure = () => {
+        const layout = T.$('ytmusic-app-layout');
+        if (layout?.hasAttribute('player-page-open') || document.documentElement.classList.contains('tk-lock')) return null;
         const doc = document.documentElement;
         const view = innerHeight;
         const total = doc.scrollHeight;
@@ -591,7 +632,7 @@
       addEventListener('resize', schedule);
       const sizes = new ResizeObserver(schedule);
       sizes.observe(document.body);
-      T.waitFor('ytmusic-app-layout').then((layout) => new MutationObserver(schedule).observe(layout, { attributeFilter: ['player-visible'] }));
+      T.waitFor('ytmusic-app-layout').then((layout) => new MutationObserver(schedule).observe(layout, { attributeFilter: ['player-visible', 'player-page-open'] }));
       document.addEventListener('takaro:dataloaded', schedule);
 
       // Drag the thumb; click the track to jump there.

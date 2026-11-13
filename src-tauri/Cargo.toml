@@ -1,6 +1,6 @@
 [package]
 name = "takaro"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Lightweight YouTube Music desktop player with Discord Rich Presence"
 license = "MIT"
@@ -15,6 +15,7 @@ serde_json = "1"
 tauri = { version = "2", features = ["tray-icon"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tauri-plugin-single-instance = "2"
 
 [target.'cfg(windows)'.dependencies]
 # Same versions Tauri uses; needed for the WebView2 extensions API.

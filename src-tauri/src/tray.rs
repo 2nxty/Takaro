@@ -130,7 +130,7 @@ fn page(app: &AppHandle, js: &str) {
     }
 }
 
-fn show_main(app: &AppHandle) {
+pub fn show_main(app: &AppHandle) {
     if let Some(w) = window::ytm(app) {
         let _ = w.show();
         let _ = w.unminimize();

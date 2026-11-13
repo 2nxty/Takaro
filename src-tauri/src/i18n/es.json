@@ -113,7 +113,7 @@
     },
     "precise-volume": {
       "name": "Volumen preciso",
-      "description": "Controla el volumen con la rueda del ratón (barra del reproductor o video) y con las flechas ↑/↓.",
+      "description": "Controla el volumen con la rueda del ratón sobre la barra del reproductor y con las flechas ↑/↓.",
       "options": {
         "steps": "Paso del volumen (%)",
         "arrowsShortcut": "Usar las flechas ↑/↓ para el volumen"

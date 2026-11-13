@@ -74,7 +74,7 @@ TakaroI18n.add("pt-BR", "Português (Brasil)", {
     "resumeName": "Retomar última sessão",
     "resume": "Reabre a música, playlist ou mix que você estava ouvindo, no ponto onde parou.",
     "volumeName": "Volume preciso",
-    "volume": "Roda do mouse e setas, passos de 1%, um indicador pequeno acima do controle, e o volume fica salvo.",
+    "volume": "Roda do mouse sobre a barra do player e setas, passos de 1%, um indicador pequeno acima do controle, e o volume fica salvo.",
     "speedName": "Velocidade de reprodução",
     "speed": "De 0,07× a 16×, direto no menu ⋮ do player.",
     "qualityName": "Seletor de qualidade",

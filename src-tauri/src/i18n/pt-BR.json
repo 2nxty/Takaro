@@ -113,7 +113,7 @@
     },
     "precise-volume": {
       "name": "Volume preciso",
-      "description": "Controle o volume com a roda do mouse (barra do player ou vídeo) e com as setas ↑/↓.",
+      "description": "Controle o volume com a roda do mouse sobre a barra do player e com as setas ↑/↓.",
       "options": {
         "steps": "Passo do volume (%)",
         "arrowsShortcut": "Usar as setas ↑/↓ para o volume"

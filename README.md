@@ -109,7 +109,7 @@ Open the **Takaro settings** button (sliders icon) in the YouTube Music top bar,
 | **Skip disliked songs** | Jumps to the next track when you dislike one. | — |
 | **Disable autoplay** | Starts songs paused. | Only for the first song after opening the app (default) |
 | **Resume last session** | When the app opens, goes back to the song, playlist or mix you were listening to, at the same point. Playlists, albums, mixes and radios come back with their queue; a queue built by hand with "Add to queue" only brings back the current song. | Resume from where the song stopped, start paused |
-| **Precise volume** | Mouse wheel over the player bar or video, ↑/↓ arrow keys, a small percentage indicator above the volume slider, and volume remembered between sessions. | Step (%), arrow keys |
+| **Precise volume** | Mouse wheel over the player bar, ↑/↓ arrow keys, a small percentage indicator above the volume slider, and volume remembered between sessions. | Step (%), arrow keys |
 | **Playback speed** | Speed control from 0.07× to 16× in the player's ⋮ menu. Mouse wheel for 0.01 steps, click the value to reset to 1×. | — |
 | **Quality selector** | Button over the player to pick the stream quality. | — |
 | **Video or cover** | Choose what the player shows: a Song/Video switch, always the cover art (no video), or nothing (the queue fills the page). | Player shows |

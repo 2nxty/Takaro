@@ -25,7 +25,7 @@
     onPlayer() {
       T.css(`
         /* One row, same height as the native menu items: [icon] [slider] [value] */
-        .takaro-speed { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 12px 0 16px; box-sizing: border-box;
+        .takaro-speed { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px 0 16px; box-sizing: border-box;
           width: 100%; color: var(--ytmusic-text-primary, #fff); font: 14px Roboto, sans-serif; cursor: default; }
         .takaro-speed svg { flex: none; opacity: .9; }
         .takaro-speed-value { flex: none; min-width: 44px; text-align: right; font-variant-numeric: tabular-nums;

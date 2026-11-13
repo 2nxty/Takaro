@@ -74,7 +74,7 @@ TakaroI18n.add("en", "English", {
     "resumeName": "Resume last session",
     "resume": "Reopens the song, playlist or mix you were listening to, right where it stopped.",
     "volumeName": "Precise volume",
-    "volume": "Mouse wheel and arrow keys, 1% steps, a small indicator above the slider, and your volume remembered.",
+    "volume": "Mouse wheel over the player bar and arrow keys, 1% steps, a small indicator above the slider, and your volume remembered.",
     "speedName": "Playback speed",
     "speed": "From 0.07× to 16×, right in the player's ⋮ menu.",
     "qualityName": "Quality selector",

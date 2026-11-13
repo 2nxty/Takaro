@@ -216,6 +216,8 @@ fn main() {
     std::thread::spawn(move || discord::run(client_id, rx));
 
     tauri::Builder::default()
+        // Opening Takaro again just brings the running window to the front.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_main(app)))
         .manage(Presence(tx))
         .invoke_handler(tauri::generate_handler![
             track_update,

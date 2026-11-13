@@ -82,7 +82,7 @@ Clique no botão **Configurações do Takaro** (ícone de sliders) na barra supe
 | **Pular músicas com dislike** | Vai para a próxima faixa quando você dá "não gostei". | — |
 | **Desativar autoplay** | Faz as músicas começarem pausadas. | Só na primeira música ao abrir o app (padrão) |
 | **Retomar última sessão** | Ao abrir o app, volta para a música, playlist ou mix que você estava ouvindo, no mesmo ponto. Playlists, álbuns, mixes e rádios voltam com a fila; uma fila montada à mão com "Adicionar à fila" só traz de volta a música atual. | Continuar de onde a música parou, começar pausado |
-| **Volume preciso** | Roda do mouse na barra do player ou no vídeo, setas ↑/↓, um indicador pequeno de porcentagem acima do volume, e o volume fica salvo entre sessões. | Passo (%), setas |
+| **Volume preciso** | Roda do mouse sobre a barra do player, setas ↑/↓, um indicador pequeno de porcentagem acima do volume, e o volume fica salvo entre sessões. | Passo (%), setas |
 | **Velocidade de reprodução** | Controle de 0,07× a 16× no menu ⋮ do player. Roda do mouse para passos de 0,01; clique no valor para voltar a 1×. | — |
 | **Seletor de qualidade** | Botão sobre o player para escolher a qualidade do stream. | — |
 | **Vídeo ou capa** | Escolha o que o player mostra: botão Música/Vídeo, sempre só a capa (sem vídeo), ou nada (a fila ocupa a tela). | O player mostra |

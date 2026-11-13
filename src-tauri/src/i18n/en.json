@@ -113,7 +113,7 @@
     },
     "precise-volume": {
       "name": "Precise volume",
-      "description": "Change the volume with the mouse wheel (player bar or video) and with the ↑/↓ arrow keys.",
+      "description": "Change the volume with the mouse wheel over the player bar and with the ↑/↓ arrow keys.",
       "options": {
         "steps": "Volume step (%)",
         "arrowsShortcut": "Use the ↑/↓ arrow keys for volume"

@@ -136,8 +136,6 @@
         }).observe(slider, { attributeFilter: ['value'], attributeOldValue: true });
       }
 
-      // Roda do mouse também sobre o vídeo/capa
-      T.$('#main-panel')?.addEventListener('wheel', onWheel, { passive: false });
 
       // Setas
       if (cfg.arrowsShortcut) {

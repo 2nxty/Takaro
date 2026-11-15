@@ -24,7 +24,7 @@
   T.register({
     id: 'sponsorblock',
     defaults: { enabled: true, apiURL: 'https://sponsor.ajay.app', categories: CATEGORIES },
-    options: [{ key: 'categories', type: 'multi', choices: CATEGORIES }],
+    options: [{ key: 'categories', type: 'multi', choices: CATEGORIES, live: true }],
 
     onPlayer(api, cfg) {
       const video = T.$('video');

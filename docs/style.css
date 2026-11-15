@@ -101,7 +101,6 @@ h1, h2, h3, p { margin: 0; }
 
 /* Hero */
 .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; padding-top: 64px; padding-bottom: 72px; }
-.eyebrow { color: var(--fog); font-size: 14px; font-weight: 500; margin-bottom: 16px; }
 h1 { font-size: 60px; line-height: 60px; font-weight: 500; letter-spacing: -1.5px; }
 .lead { color: var(--fog); font-size: 18px; line-height: 1.56; margin-top: 24px; max-width: 560px; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 32px; }
@@ -130,6 +129,7 @@ h1 { font-size: 60px; line-height: 60px; font-weight: 500; letter-spacing: -1.5p
   background: radial-gradient(closest-side, rgba(255, 48, 64, .12), rgba(120, 30, 200, .1), transparent);
   pointer-events: none;
 }
+.shot { display: block; width: 100%; height: auto; margin-top: 16px; border-radius: 8px; border: 1px solid var(--edge); }
 .demo-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; position: relative; }
 .demo-caption { color: var(--fog); font-size: 14px; }
 .demo-stage { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 32px; padding: 48px 0 40px; }

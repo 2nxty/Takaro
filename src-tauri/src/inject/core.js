@@ -21,7 +21,10 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     } catch {}
+    // Plugins with a live() hook apply their settings (on/off included) right away, no reload.
+    if (p?.live && liveReady) safe(p, 'live', () => p.live(p.config));
   };
+  let liveReady = false;
 
   // ── i18n ─────────────────────────────────────────────────
   // Traduções em src-tauri/src/i18n/*.json (embutidas no build). Idioma: o escolhido no
@@ -30,6 +33,19 @@
   T.FALLBACK_LANG = 'en';
   T.getLanguagePref = () => stored.__takaro?.language || 'auto';
   T.closeToTray = () => stored.__takaro?.closeToTray ?? true; // default: X hides to the tray
+  T.zoom = () => Math.min(1.2, Math.max(0.8, Number(stored.__takaro?.zoom) || 1)); // page scaling
+  T.overlayEnabled = () => !!stored.__takaro?.overlay;
+  // OBS overlay settings, as passed to the `set_overlay` command.
+  T.OVERLAY_DEFAULTS = { port: 13091, from: '#ff3040', to: '#781ec8' };
+  T.overlayArgs = (enabled = T.overlayEnabled()) => {
+    const o = stored.__takaro || {};
+    return {
+      enabled,
+      port: Number(o.overlayPort) || T.OVERLAY_DEFAULTS.port,
+      from: o.overlayFrom || T.OVERLAY_DEFAULTS.from,
+      to: o.overlayTo || T.OVERLAY_DEFAULTS.to,
+    };
+  };
   let langCache = null;
   T.lang = () => {
     if (langCache) return langCache;
@@ -62,9 +78,29 @@
   let forceReload = false;
   window.addEventListener('beforeunload', (e) => forceReload && e.stopImmediatePropagation(), true);
   T.reload = () => {
+    document.dispatchEvent(new Event('takaro:beforereload')); // e.g. save the playback position
     forceReload = true;
     location.reload();
   };
+
+  // Settings that only apply after a reload (plugins + language), as a stable string: the panel
+  // shows "Reload" only while this differs from what the page was loaded with.
+  const stable = (v) =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? `{${Object.keys(v).filter((k) => v[k] !== undefined).sort().map((k) => `${JSON.stringify(k)}:${stable(v[k])}`).join(',')}}`
+      : JSON.stringify(v ?? null);
+  // Effective config (defaults + saved), so turning something on and back off counts as unchanged.
+  // Only what needs a reload counts: not plugins with a live() hook, nor options marked `live`.
+  T.effectiveConfig = (p) => {
+    if (p.live) return '';
+    const all = { ...p.defaults, ...(stored[p.id] || {}) };
+    const cfg = { enabled: all.enabled }; // internal state (saved volume, last choice...) never counts
+    for (const o of p.options || []) if (!o.live) cfg[o.key] = all[o.key];
+    return stable(cfg);
+  };
+  const loadedLanguage = stored.__takaro?.language || 'auto';
+  T.settingsChanged = () =>
+    (stored.__takaro?.language || 'auto') !== loadedLanguage || T.plugins.some((p) => T.effectiveConfig(p) !== p.loadedConfig);
 
   // ── IPC ──────────────────────────────────────────────────
   T.invoke = (cmd, args) =>
@@ -157,6 +193,8 @@
   //   early(cfg), start(cfg), onPlayer(api, cfg) }
   T.register = (plugin) => {
     plugin.config = { ...plugin.defaults, ...(stored[plugin.id] || {}) };
+    if (plugin.core) plugin.config.enabled = true; // built-in feature: always on, not listed in Plugins
+    plugin.loadedConfig = T.effectiveConfig(plugin);
     T.plugins.push(plugin);
     if (plugin.config.enabled && plugin.early) safe(plugin, 'early', () => plugin.early(plugin.config));
   };
@@ -174,6 +212,8 @@
 
   async function boot() {
     for (const p of enabled()) if (p.start) safe(p, 'start', () => p.start(p.config));
+    liveReady = true;
+    for (const p of T.plugins) if (p.live) safe(p, 'live', () => p.live(p.config));
 
     const api = await T.waitFor('#movie_player');
     while (typeof api.getPlayerState !== 'function' || !T.$('video')) {
@@ -188,6 +228,44 @@
       next: () => press('.next-button'),
       previous: () => press('.previous-button'),
     };
+
+    // Player "⋮" menu hook: plugins add their own rows. One batched observer for all of them;
+    // rows are rebuilt every time the menu opens, so a menu YTM recycled never keeps a dead row.
+    const menuHandlers = [];
+    const isPlayerMenu = (menu) =>
+      !!menu?.parentElement?.ytEventForwardingBehavior?.forwarder_?.eventSink?.matches?.('ytmusic-menu-renderer.ytmusic-player-bar');
+    const isTrackMenu = () => {
+      for (const el of document.querySelectorAll('tp-yt-paper-listbox #navigation-endpoint')) {
+        if (el?.data?.addToPlaylistEndpoint?.videoId || el?.data?.watchEndpoint?.videoId) return true;
+      }
+      return false;
+    };
+    const syncMenu = () => {
+      const menu = T.$('ytmusic-menu-popup-renderer tp-yt-paper-listbox');
+      const ok = !!menu && isPlayerMenu(menu) && isTrackMenu();
+      for (const h of menuHandlers) {
+        for (const old of document.querySelectorAll(`.${h.cls}`)) if (!ok || old.parentElement !== menu) old.remove();
+        if (ok && !menu.querySelector(`:scope > .${h.cls}`)) {
+          const row = h.build();
+          row.classList.add(h.cls);
+          const after = h.position.startsWith('after:') && menu.querySelector(`:scope > .${h.position.slice(6)}`);
+          if (after) after.after(row);
+          else h.position === 'end' ? menu.append(row) : menu.prepend(row);
+        }
+      }
+    };
+    let menuQueued = false;
+    new MutationObserver(() => {
+      if (menuQueued || !menuHandlers.length) return;
+      menuQueued = true;
+      requestAnimationFrame(() => {
+        menuQueued = false;
+        syncMenu();
+      });
+    }).observe(T.$('ytmusic-app') || document.body, { childList: true, subtree: true });
+    /** Adds a row to the player bar's ⋮ menu. build() must return a new element each time.
+     *  position: 'start' | 'end' | 'after:<class of another Takaro row>'. */
+    T.onPlayerMenu = (cls, build, position = 'start') => menuHandlers.push({ cls, build, position });
 
     // Reemite os eventos do player como eventos do documento.
     api.addEventListener('videodatachange', (name, data) => {

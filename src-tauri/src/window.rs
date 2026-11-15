@@ -14,9 +14,11 @@ pub fn ytm(app: &AppHandle) -> Option<WebviewWindow> {
     app.get_webview_window(MAIN)
 }
 
-pub fn create(app: &mut App, inject: &str) -> tauri::Result<()> {
+/// `start_url`: a music.youtube.com URL from a tak:// link the app was opened with.
+pub fn create(app: &mut App, inject: &str, start_url: Option<String>) -> tauri::Result<()> {
     app.manage(Shown(std::sync::atomic::AtomicBool::new(false)));
-    let window = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::External("https://music.youtube.com/".parse().unwrap()))
+    let url = start_url.and_then(|u| u.parse().ok()).unwrap_or_else(|| "https://music.youtube.com/".parse().unwrap());
+    let window = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::External(url))
         .title("Takaro")
         .inner_size(1280.0, 820.0)
         .min_inner_size(800.0, 560.0)
@@ -64,6 +66,13 @@ fn show(window: &WebviewWindow) {
 fn send_maximized(window: &WebviewWindow) {
     let maximized = window.is_maximized().unwrap_or(false);
     let _ = window.eval(format!("window.Takaro?.bar?.setMaximized({maximized})"));
+}
+
+/// Page scaling (80%–120%), from Takaro settings.
+#[tauri::command]
+pub fn set_zoom(app: AppHandle, zoom: f64) -> Result<(), String> {
+    let page = ytm(&app).ok_or("main window not found")?;
+    page.set_zoom(zoom.clamp(0.8, 1.2)).map_err(|e| e.to_string())
 }
 
 /// Window buttons and dragging for the in-page title bar.

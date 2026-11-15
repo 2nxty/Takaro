@@ -2,6 +2,8 @@
 
 mod discord;
 mod extensions;
+mod links;
+mod overlay;
 mod perf;
 mod tray;
 mod updater;
@@ -46,6 +48,7 @@ const INJECT: &str = concat!(
     "window.__TAKARO_VERSION__ = \"", env!("CARGO_PKG_VERSION"), "\";\n",
     include_str!(concat!(env!("OUT_DIR"), "/locales.js")), "\n", // gerado de src/i18n/*.json
     include_str!("inject/core.js"), "\n",
+    include_str!("inject/vendor/cpu-tamer.js"), "\n",
     include_str!("inject/plugins/sponsorblock.js"), "\n",
     include_str!("inject/plugins/skip-disliked-songs.js"), "\n",
     include_str!("inject/plugins/disable-autoplay.js"), "\n",
@@ -54,6 +57,12 @@ const INJECT: &str = concat!(
     include_str!("inject/plugins/playback-speed.js"), "\n",
     include_str!("inject/plugins/quality-changer.js"), "\n",
     include_str!("inject/plugins/video-toggle.js"), "\n",
+    include_str!("inject/plugins/player-background.js"), "\n",
+    include_str!("inject/plugins/player-bar.js"), "\n",
+    include_str!("inject/plugins/lyrics.js"), "\n",
+    include_str!("inject/plugins/share-links.js"), "\n",
+    include_str!("inject/plugins/toast-autoclose.js"), "\n",
+    include_str!("inject/plugins/performance.js"), "\n",
     include_str!("inject/ui.js"), "\n",
     include_str!("inject/presence.js"),
 );
@@ -184,12 +193,23 @@ fn track_update(track: Track, presence: State<Presence>, tray: State<tray::Tray>
         format!("{} — {}", track.title.trim(), track.artist.trim())
     };
     tray.set_track(Some(now), !track.paused);
+    overlay::set(Some(overlay::NowPlaying {
+        title: track.title.clone(),
+        artist: track.artist.clone(),
+        album: track.album.clone(),
+        artwork: track.artwork.clone(),
+        position: track.position,
+        duration: track.duration,
+        paused: track.paused,
+        at_ms: 0,
+    }));
     let _ = presence.0.send(discord::Cmd::Set(build_activity(&track)));
 }
 
 #[tauri::command]
 fn playback_stopped(presence: State<Presence>, tray: State<tray::Tray>) {
     tray.set_track(None, false);
+    overlay::set(None);
     let _ = presence.0.send(discord::Cmd::Clear);
 }
 
@@ -217,7 +237,15 @@ fn main() {
 
     tauri::Builder::default()
         // Opening Takaro again just brings the running window to the front.
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_main(app)))
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // A tak:// link opened while Takaro runs: go there in the running window.
+            if let (Some(url), Some(page)) = (links::from_args(args), window::ytm(app)) {
+                if let Ok(url) = url.parse() {
+                    let _ = page.navigate(url);
+                }
+            }
+            tray::show_main(app);
+        }))
         .manage(Presence(tx))
         .invoke_handler(tauri::generate_handler![
             track_update,
@@ -225,6 +253,8 @@ fn main() {
             open_external,
             tray::set_tray_labels,
             window::titlebar_action,
+            window::set_zoom,
+            overlay::set_overlay,
             updater::check_update,
             updater::install_update,
             extensions::list_extensions,
@@ -239,7 +269,8 @@ fn main() {
         .setup(|app| {
             updater::cleanup();
             tray::setup(app.handle())?;
-            window::create(app, INJECT)?;
+            links::register();
+            window::create(app, INJECT, links::from_args(std::env::args()))?;
             Ok(())
         })
         .run(tauri::generate_context!())

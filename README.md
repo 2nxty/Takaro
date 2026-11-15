@@ -5,8 +5,8 @@
 <h1 align="center">Takaro</h1>
 
 <p align="center">
-  A tiny YouTube Music desktop player for Windows, with Discord Rich Presence.<br>
-  No Electron. About 4 MB.
+  A tiny, fast YouTube Music desktop player for Windows.<br>
+  No Electron. About 5 MB.
 </p>
 
 <p align="center">
@@ -28,8 +28,11 @@
 - [What is Takaro?](#what-is-takaro)
 - [Features](#features)
 - [Download](#download)
-- [Discord Rich Presence](#discord-rich-presence)
 - [Plugins](#plugins)
+- [Synced lyrics](#synced-lyrics)
+- [Takaro links (tak://)](#takaro-links-tak)
+- [OBS overlay](#obs-overlay)
+- [Discord Rich Presence](#discord-rich-presence)
 - [Extensions](#extensions)
 - [Languages](#languages)
 - [Building from source](#building-from-source)
@@ -45,22 +48,26 @@
 
 ## What is Takaro?
 
-Takaro opens the official **YouTube Music** web player in a small native window and publishes what you're listening to as a **Discord Rich Presence** card: cover art, title, artist, album, a live progress bar and buttons so your friends can listen too.
+Takaro is a desktop player for **YouTube Music**: the official web player in a light native window, polished with a cleaner design, a cover-art backdrop, synced lyrics, built-in plugins, a tray icon and more. It can also share what you're listening to on Discord, in OBS or as a `tak://` link.
 
-It is built with [Tauri 2](https://tauri.app) and uses the **Microsoft Edge WebView2** runtime that already ships with Windows 10/11, so there is no bundled Chromium. The whole app is a single ~4 MB portable `.exe`.
+It is built with [Tauri 2](https://tauri.app) and uses the **Microsoft Edge WebView2** runtime that already ships with Windows 10/11, so there is no bundled Chromium. The whole app is a single ~5 MB portable `.exe`.
 
 ## Features
 
-- **Discord Rich Presence** — "Listening to" activity with cover art, artist, album, live progress bar and two buttons. When you pause, the card stays and shows *Paused* with the current time instead of disappearing.
-- **Lightweight** — Tauri + WebView2, no Electron. Portable `.exe`, no installer.
-- **Your real YouTube Music** — sign in with your account: playlists, likes, mixes, lyrics, everything works.
-- **Built-in plugins** — SponsorBlock, precise volume, playback speed, quality selector and more, configurable from an in-app panel.
-- **Built-in title bar** — a frameless window whose title bar (back/forward, settings and the window buttons) blends with the page background, gradients included.
+- **Lightweight** — Tauri + WebView2, no Electron. One portable ~5 MB `.exe`, no installer.
+- **Your real YouTube Music** — sign in with your account: playlists, likes, mixes, uploads, everything works.
+- **Refined player** — frameless window with a built-in title bar, the cover art of the current song as a backdrop behind the player (with an optional frosted-glass blur), a gradient progress bar and cleaner menus.
+- **Synced lyrics** — time-synced lyrics from Better Lyrics and LRCLIB in the Lyrics tab; click a line to jump to it.
+- **Built-in plugins** — SponsorBlock, precise volume, playback speed, quality selector, resume last session and more, configurable from an in-app panel.
+- **Page scaling** — zoom the page from 80% to 120% (the title bar keeps its size).
+- **Takaro links** — `tak://` links open a song, playlist or channel straight in Takaro.
+- **OBS overlay** — a local "now playing" card for an OBS Browser Source.
+- **Discord Rich Presence** — optional "Listening to" card with cover art, progress and buttons.
+- **Tray icon** — now playing, play/pause, previous/next, show/hide, settings and quit from the notification area.
 - **Auto-update** — checks GitHub for a new release and, after you confirm, replaces the exe and restarts.
-- **Tray icon** — now playing, play/pause, previous/next, show/hide, settings and quit from the notification area. Click the icon to hide the window and keep listening.
-- **Light on resources** — event-driven scripts, and WebView2 trims its memory while the window is minimized or hidden.
+- **Light on resources** — event-driven scripts, optional CPU/memory optimizations, and WebView2 trims its memory while the window is minimized or hidden.
 - **Browser extensions** — install extensions from the Chrome Web Store or Edge Add-ons right inside the app.
-- **Multilingual** — English, Português (Brasil) and Español, following the YouTube Music language automatically. New languages are a single JSON file.
+- **Multilingual** — English, Português (Brasil) and Español, following the YouTube Music language automatically.
 - **Private** — no servers, no telemetry. Your login lives in a local WebView2 profile.
 
 ## Download
@@ -71,10 +78,55 @@ Grab **`Takaro.exe`** from the [latest release](https://github.com/2nxty/Takaro/
 
 - Windows 10 or 11 (x64)
 - Microsoft Edge WebView2 Runtime — preinstalled on Windows 11 and on up-to-date Windows 10. If it's missing, get it from [Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
-- Discord desktop app (only for Rich Presence)
+- Discord desktop app (only if you want Rich Presence)
 
 > [!NOTE]
 > The `.exe` isn't code-signed yet, so Windows SmartScreen may show a warning the first time. Click **More info → Run anyway**.
+
+## Plugins
+
+Open the **Takaro settings** button (sliders icon) in the YouTube Music top bar, or **Settings** in the tray menu. The panel has three tabs: **Plugins**, **Extensions** and **General** (language, page scaling, OBS overlay, what the window's **X** does — quit or minimize to the tray —, updates and links). Changes are saved right away; when one needs a reload, a **Reload** bar appears at the bottom.
+
+| Plugin | What it does | Options |
+|---|---|---|
+| **SponsorBlock** | Skips intros, outros and non-music sections of music videos using the [SponsorBlock](https://sponsor.ajay.app) database. | Categories |
+| **Skip disliked songs** | Jumps to the next track when you dislike one. | — |
+| **Disable autoplay** | Starts songs paused. | Only for the first song after opening the app (default) |
+| **Resume last session** | When the app opens, goes back to the song, playlist or mix you were listening to, at the same point. Playlists, albums, mixes and radios come back with their queue; a queue built by hand with "Add to queue" only brings back the current song. | Resume from where the song stopped, start paused |
+| **Precise volume** | Mouse wheel over the player bar, ↑/↓ arrow keys, a small percentage indicator above the volume slider, and volume remembered between sessions. | Step (%), arrow keys |
+| **Quality selector** | Button over the player to pick the stream quality. | — |
+| **Video or cover** | Choose what the player shows: a Song/Video switch, always the cover art (no video), or nothing (the queue fills the page). | Player shows |
+| **Player background** | The current cover art, blurred, as the backdrop over the whole window while the player is open. | — |
+| **Player bar** | Customizations for the bar at the bottom. | Glass bar (see-through, frosted bar and menus), center buttons (playback controls in the middle with the times on each side, song info on the left) |
+| **Synced lyrics** | Time-synced lyrics in the Lyrics tab (see below). | Open the Lyrics tab when lyrics are found |
+| **Auto-close notifications** | Closes YouTube Music's pop-up notifications ("Saved to liked music"…) after a few seconds. | Seconds |
+| **Performance fixes** | Lowers YouTube Music's CPU use ([CPU Tamer](https://github.com/cyfung1031/userscript-supports)). Turn off if something misbehaves. | — |
+
+Built in (always on): a **playback speed** control from 0.25× to 2× at the top of the player's ⋮ menu (mouse wheel for 0.01 steps, click the value to reset to 1×), with **Copy Takaro link** right below it. Takaro also fixes the player-bar ⋮ menu so that clicking it again closes it.
+
+Visual settings (player background, player bar) and most options apply instantly; the panel only asks for a reload when a change really needs one.
+
+## Synced lyrics
+
+Open the **Lyrics** tab of the player. Takaro looks the song up on [Better Lyrics](https://better-lyrics.boidu.dev) first and [LRCLIB](https://lrclib.net) next; when synced lyrics exist, the current line is highlighted and followed as the song plays, and clicking a line seeks to it. If only plain text is found it is shown as is, and if nothing is found YouTube Music's own lyrics stay. A small badge shows where the lyrics came from.
+
+## Takaro links (tak://)
+
+Takaro registers the `tak://` protocol for your Windows user (no admin needed) every time it starts. Opening a `tak://` link — from a browser, a chat or **Win + R** — opens it in Takaro; if Takaro is already running, the running window goes there.
+
+| Link | Opens |
+|---|---|
+| `tak://watch/<videoId>` | A song |
+| `tak://watch/<videoId>/<playlistId>` | A song inside a playlist |
+| `tak://playlist/<playlistId>` | A playlist or album |
+| `tak://channel/<UC…>` or `tak://channel/@handle` | An artist / channel |
+| `tak://music.youtube.com/…` | Any YouTube Music URL with `https://` swapped for `tak://` (YouTube and youtu.be links work too) |
+
+Use **⋮ → Copy Takaro link** in the player to copy the link of the current song.
+
+## OBS overlay
+
+Turn on **Takaro settings → General → OBS overlay** and copy the address it shows (`http://127.0.0.1:13091/overlay` by default; the port and the progress bar colours can be changed there). In OBS add a **Browser Source** with that URL (about 480×140). It shows the cover, title, artist and progress of the current song, with the Takaro logo in the corner, on a transparent background. Other layouts: `?layout=compact` and `?layout=text`. The server only listens on your own computer, and the current song is also available as JSON at `/now-playing`.
 
 ## Discord Rich Presence
 
@@ -99,22 +151,6 @@ Notes:
 - If Discord isn't running, Takaro retries every 15 seconds and connects as soon as it opens.
 - Updates are rate-limited (at most one every 4 s) to stay within Discord's limits.
 
-## Plugins
-
-Open the **Takaro settings** button (sliders icon) in the YouTube Music top bar, or **Settings** in the tray menu. The panel has three tabs: **Plugins**, **Extensions** and **General** (language, version and links). The **General** tab also sets what the window's **X** does: quit, or minimize to the tray. Changes are saved right away; when one needs a reload, a **Reload** bar appears at the bottom.
-
-| Plugin | What it does | Options |
-|---|---|---|
-| **SponsorBlock** | Skips intros, outros and non-music sections of music videos using the [SponsorBlock](https://sponsor.ajay.app) database. | Categories |
-| **Skip disliked songs** | Jumps to the next track when you dislike one. | — |
-| **Disable autoplay** | Starts songs paused. | Only for the first song after opening the app (default) |
-| **Resume last session** | When the app opens, goes back to the song, playlist or mix you were listening to, at the same point. Playlists, albums, mixes and radios come back with their queue; a queue built by hand with "Add to queue" only brings back the current song. | Resume from where the song stopped, start paused |
-| **Precise volume** | Mouse wheel over the player bar, ↑/↓ arrow keys, a small percentage indicator above the volume slider, and volume remembered between sessions. | Step (%), arrow keys |
-| **Playback speed** | Speed control from 0.07× to 16× in the player's ⋮ menu. Mouse wheel for 0.01 steps, click the value to reset to 1×. | — |
-| **Quality selector** | Button over the player to pick the stream quality. | — |
-| **Video or cover** | Choose what the player shows: a Song/Video switch, always the cover art (no video), or nothing (the queue fills the page). | Player shows |
-
-Takaro also fixes the player-bar ⋮ menu so that clicking it again closes it.
 
 ## Extensions
 
@@ -204,7 +240,9 @@ Takaro/
 │  │  ├─ main.rs              # Window, IPC commands, Rich Presence payload
 │  │  ├─ discord.rs           # Minimal Discord IPC client (named pipe, no deps)
 │  │  ├─ extensions.rs        # Browser extensions: store download, install, list, remove
-│  │  ├─ window.rs            # Frameless main window + title bar actions
+│  │  ├─ window.rs            # Frameless main window, title bar actions, page zoom
+│  │  ├─ links.rs             # tak:// protocol: registration + link → URL
+│  │  ├─ overlay.rs           # Local HTTP server for the OBS overlay (overlay.html)
 │  │  ├─ updater.rs           # Checks GitHub releases and replaces the exe
 │  │  ├─ tray.rs              # Tray icon and menu
 │  │  ├─ perf.rs              # WebView2 low-memory mode while minimized/hidden
@@ -212,6 +250,7 @@ Takaro/
 │  │  └─ inject/              # JavaScript injected into music.youtube.com
 │  │     ├─ core.js           # Plugin registry, settings, i18n, DOM helpers, player events
 │  │     ├─ plugins/*.js      # One file per plugin
+│  │     ├─ vendor/           # Third-party scripts (CPU Tamer)
 │  │     ├─ ui.js             # Settings panel, modals, ⋮ menu fix
 │  │     ├─ presence.js       # Reads the current track and sends it to Rust
 │  │     └─ store.js          # "Install in Takaro" box for the store window
@@ -347,6 +386,9 @@ Not yet — the Discord client uses Windows named pipes. Contributions are welco
 ## Credits
 
 - Plugins ported from [pear-desktop](https://github.com/pear-devs/pear-desktop) (MIT) — see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+- Player design, lyrics, overlay and `tak://` ideas from [ytmdesktop2](https://github.com/Venipa/ytmdesktop2) (CC0).
+- [CPU Tamer](https://github.com/cyfung1031/userscript-supports) by CY Fung (MIT).
+- Lyrics from [Better Lyrics](https://better-lyrics.boidu.dev) and [LRCLIB](https://lrclib.net).
 - [SponsorBlock](https://sponsor.ajay.app) for the segment database.
 - [Tauri](https://tauri.app) for the app framework.
 

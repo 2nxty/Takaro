@@ -6,7 +6,7 @@
   T.register({
     id: 'disable-autoplay',
     defaults: { enabled: true, applyOnce: true },
-    options: [{ key: 'applyOnce', type: 'checkbox' }],
+    options: [{ key: 'applyOnce', type: 'checkbox', live: true }],
 
     onPlayer(api, cfg) {
       const onTimeUpdate = (e) => e.target.pause();

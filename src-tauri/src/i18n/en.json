@@ -18,13 +18,24 @@
     "reloadNeeded": "Reload to apply your changes.",
     "reloadNow": "Reload",
     "version": "Version {version}",
-    "tagline": "YouTube Music for desktop, with Discord Rich Presence.",
+    "tagline": "A tiny YouTube Music player for Windows.",
     "site": "Website",
     "issues": "Report an issue",
-    "credits": "Plugins ported from pear-desktop (MIT).",
     "closeAction": "Close button (X)",
     "closeQuit": "Quit Takaro",
-    "closeTray": "Minimize to the tray"
+    "closeTray": "Minimize to the tray",
+    "zoom": "Page scaling",
+    "overlay": {
+      "title": "OBS overlay",
+      "desc": "Now-playing card for an OBS Browser Source.",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "hint": "In OBS: Add → Browser Source → paste the URL (about 480×140). Other layouts: ?layout=compact or ?layout=text.",
+      "error": "Couldn't start the overlay: {error}",
+      "port": "Port",
+      "gradient": "Progress bar",
+      "reset": "Reset"
+    }
   },
   "tray": {
     "play": "Play",
@@ -125,7 +136,7 @@
     },
     "playback-speed": {
       "name": "Playback speed",
-      "description": "Adds a speed control (0.07× to 16×) to the ⋮ menu of the player bar. Use the mouse wheel for fine adjustments.",
+      "description": "Adds a speed control (0.25× to 2×) to the ⋮ menu of the player bar. Use the mouse wheel for fine adjustments.",
       "label": "Speed",
       "reset": "Back to 1×",
       "wheelHint": "Mouse wheel: fine adjustment"
@@ -151,6 +162,44 @@
           "hidden": "Nothing (hide the player, queue on full page)"
         }
       }
+    },
+    "player-background": {
+      "name": "Player background",
+      "description": "The cover art of the current song, blurred, as the backdrop behind the player."
+    },
+    "player-bar": {
+      "name": "Player bar",
+      "description": "Customize the bar at the bottom of the window.",
+      "options": {
+        "glass": "Glass bar (see-through, frosted bar and menus)",
+        "center": "Center buttons (playback controls in the middle, song info on the left)"
+      }
+    },
+    "lyrics": {
+      "name": "Synced lyrics",
+      "description": "Time-synced lyrics in the Lyrics tab (Better Lyrics, LRCLIB). Click a line to jump to it.",
+      "options": {
+        "autoOpen": "Open the Lyrics tab when lyrics are found"
+      },
+      "synced": "synced",
+      "plain": "text only"
+    },
+    "share-links": {
+      "name": "Takaro links",
+      "description": "Adds “Copy Takaro link” to the player's ⋮ menu. tak:// links open the song straight in Takaro.",
+      "copy": "Copy Takaro link",
+      "copied": "Link copied!"
+    },
+    "toast-autoclose": {
+      "name": "Auto-close notifications",
+      "description": "Closes YouTube Music's pop-up notifications (like “Saved to liked music”) after a few seconds.",
+      "options": {
+        "seconds": "Close after (seconds)"
+      }
+    },
+    "performance": {
+      "name": "Performance fixes",
+      "description": "Lowers YouTube Music's CPU use (CPU Tamer). Turn off if something misbehaves."
     }
   }
 }

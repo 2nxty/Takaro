@@ -18,13 +18,24 @@
     "reloadNeeded": "Recarga para aplicar los cambios.",
     "reloadNow": "Recargar",
     "version": "Versión {version}",
-    "tagline": "YouTube Music en el escritorio, con Discord Rich Presence.",
+    "tagline": "Un reproductor ligero de YouTube Music para Windows.",
     "site": "Sitio web",
     "issues": "Reportar un problema",
-    "credits": "Plugins portados de pear-desktop (MIT).",
     "closeAction": "Botón cerrar (X)",
     "closeQuit": "Cerrar Takaro",
-    "closeTray": "Minimizar a la bandeja"
+    "closeTray": "Minimizar a la bandeja",
+    "zoom": "Escala de la página",
+    "overlay": {
+      "title": "Overlay para OBS",
+      "desc": "Tarjeta de “sonando ahora” para usar como fuente de navegador en OBS.",
+      "copy": "Copiar",
+      "copied": "¡Copiado!",
+      "hint": "En OBS: Añadir → Navegador (Browser Source) → pega la dirección (unos 480×140). Otros diseños: ?layout=compact o ?layout=text.",
+      "error": "No se pudo iniciar el overlay: {error}",
+      "port": "Puerto",
+      "gradient": "Barra de progreso",
+      "reset": "Restablecer"
+    }
   },
   "tray": {
     "play": "Reproducir",
@@ -125,7 +136,7 @@
     },
     "playback-speed": {
       "name": "Velocidad de reproducción",
-      "description": "Añade un control de velocidad (0,07× a 16×) al menú ⋮ de la barra del reproductor. Usa la rueda del ratón para ajuste fino.",
+      "description": "Añade un control de velocidad (0,25× a 2×) al menú ⋮ de la barra del reproductor. Usa la rueda del ratón para ajuste fino.",
       "label": "Velocidad",
       "reset": "Volver a 1×",
       "wheelHint": "Rueda del ratón: ajuste fino"
@@ -151,6 +162,44 @@
           "hidden": "Nada (oculta el reproductor, cola a pantalla completa)"
         }
       }
+    },
+    "player-background": {
+      "name": "Fondo del reproductor",
+      "description": "La portada de la canción actual, desenfocada, como fondo detrás del reproductor."
+    },
+    "player-bar": {
+      "name": "Barra del reproductor",
+      "description": "Personaliza la barra de la parte inferior de la ventana.",
+      "options": {
+        "glass": "Barra de cristal (barra y menús translúcidos, con efecto de cristal esmerilado)",
+        "center": "Centrar botones (controles en el medio, información de la canción a la izquierda)"
+      }
+    },
+    "lyrics": {
+      "name": "Letras sincronizadas",
+      "description": "Letras sincronizadas con la canción en la pestaña Letra (Better Lyrics, LRCLIB). Haz clic en una línea para ir a ella.",
+      "options": {
+        "autoOpen": "Abrir la pestaña Letra al encontrar la letra"
+      },
+      "synced": "sincronizada",
+      "plain": "solo texto"
+    },
+    "share-links": {
+      "name": "Enlaces de Takaro",
+      "description": "Añade “Copiar enlace de Takaro” al menú ⋮ del reproductor. Los enlaces tak:// abren la canción directamente en Takaro.",
+      "copy": "Copiar enlace de Takaro",
+      "copied": "¡Enlace copiado!"
+    },
+    "toast-autoclose": {
+      "name": "Cerrar avisos automáticamente",
+      "description": "Cierra los avisos de YouTube Music (como “Guardado en canciones que te gustan”) tras unos segundos.",
+      "options": {
+        "seconds": "Cerrar tras (segundos)"
+      }
+    },
+    "performance": {
+      "name": "Optimizaciones de rendimiento",
+      "description": "Reduce el uso de CPU de YouTube Music (CPU Tamer). Desactívalo si algo falla."
     }
   }
 }

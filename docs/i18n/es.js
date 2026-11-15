@@ -1,8 +1,8 @@
 // Español — copy this file to add a language, then add a <script> line in index.html.
 TakaroI18n.add("es", "Español", {
   "meta": {
-    "title": "Takaro — YouTube Music en el escritorio, con Discord Rich Presence",
-    "description": "Un reproductor de YouTube Music para Windows, ligero, que muestra en Discord lo que estás escuchando. Sin Electron, unos 4 MB."
+    "title": "Takaro — un reproductor ligero de YouTube Music para Windows",
+    "description": "Un reproductor de YouTube Music rápido y ligero para Windows. Sin Electron, unos 5 MB."
   },
   "announce": {
     "text": "Takaro es de código abierto, con licencia MIT.",
@@ -18,18 +18,22 @@ TakaroI18n.add("es", "Español", {
     "cta": "Descargar"
   },
   "hero": {
-    "eyebrow": "YouTube Music · Discord · Windows",
-    "title": "Tu música en el escritorio. Tu estado en Discord.",
-    "subtitle": "Takaro abre el YouTube Music de siempre en una ventana nativa y ligera, y muestra en tu perfil de Discord lo que suena: portada, barra de progreso en vivo y un botón para que tus amigos escuchen también.",
+    "title": "YouTube Music en tu escritorio.",
+    "subtitle": "Un reproductor rápido y ligero para el YouTube Music de verdad. Sencillo, bonito y hecho para tu escritorio.",
     "download": "Descargar para Windows",
     "github": "Ver en GitHub",
-    "meta1": ".exe portable de ~4 MB",
+    "meta1": ".exe portable de ~5 MB",
     "meta2": "Sin Electron",
     "meta3": "Gratis y de código abierto"
   },
+  "shot": {
+    "label": "El reproductor",
+    "caption": "La portada detrás de todo, una barra de reproducción limpia y tu cola a mano.",
+    "alt": "Takaro reproduciendo una canción: la portada llena la ventana, con la cola a la derecha y la barra del reproductor abajo"
+  },
   "demo": {
     "label": "Discord Rich Presence",
-    "caption": "Así te ven tus amigos mientras Takaro reproduce.",
+    "caption": "Opcional: muestra en tu perfil de Discord lo que suena. Así lo ven tus amigos.",
     "listening": "Escuchando",
     "paused": "En pausa",
     "listenButton": "Escuchar en YouTube Music",
@@ -41,8 +45,8 @@ TakaroI18n.add("es", "Español", {
     "title": "App pequeña, todo lo que necesitas",
     "subtitle": "El YouTube Music completo que ya usas, sin un navegador pesado encima.",
     "presence": {
-      "title": "Rich Presence bien hecho",
-      "text": "Portada, artista, álbum, barra de progreso en vivo y botones para tus amigos. Cuando pausas, tu estado sigue ahí y muestra que está en pausa, en lugar de desaparecer."
+      "title": "Discord Rich Presence",
+      "text": "Portada, barra de progreso en vivo y botones para tus amigos. Al pausar, el estado sigue y lo indica."
     },
     "light": {
       "title": "Ligero de verdad",
@@ -53,15 +57,27 @@ TakaroI18n.add("es", "Español", {
       "text": "Es el reproductor web oficial de YouTube Music: inicia sesión y tendrás tus listas, me gusta, mixes y letras."
     },
     "plugins": {
-      "title": "Plugins incluidos",
-      "text": "SponsorBlock, volumen preciso, velocidad de reproducción y más. Activa o desactiva cada uno en el panel de Takaro."
+      "title": "Plugins integrados",
+      "text": "SponsorBlock, volumen preciso, velocidad de reproducción, escala de la página y más. Activa o desactiva cada uno en el panel de Takaro."
     },
     "open": {
       "title": "Código abierto",
       "text": "Licencia MIT. Lee el código, abre un issue, crea un plugin o una traducción."
     },
     "more": "Más información",
-    "code": "Ver el código"
+    "code": "Ver el código",
+    "player": {
+      "title": "Un reproductor que se siente nativo",
+      "text": "La portada de la canción actual llena la ventana detrás del reproductor, con desenfoque opcional (efecto cristal), barra de progreso en degradado, menús más limpios y una ventana sin marco con su propia barra de título."
+    },
+    "lyrics": {
+      "title": "Letras sincronizadas",
+      "text": "Letras sincronizadas de Better Lyrics y LRCLIB, siguiendo la canción línea a línea. Haz clic en una línea para ir a ella."
+    },
+    "share": {
+      "title": "Compártelo donde quieras",
+      "text": "Los enlaces tak:// abren la canción directamente en Takaro, y un overlay local para OBS muestra lo que suena en directo."
+    }
   },
   "plugins": {
     "title": "Plugins",
@@ -76,12 +92,20 @@ TakaroI18n.add("es", "Español", {
     "volumeName": "Volumen preciso",
     "volume": "Rueda del ratón sobre la barra del reproductor y flechas, pasos de 1%, un indicador pequeño sobre el control, y tu volumen se guarda.",
     "speedName": "Velocidad de reproducción",
-    "speed": "De 0,07× a 16×, directamente en el menú ⋮ del reproductor.",
+    "speed": "De 0,25× a 2×, directamente en el menú ⋮ del reproductor.",
     "qualityName": "Selector de calidad",
     "quality": "Elige la calidad del stream con un botón sobre el reproductor.",
     "videoName": "Video o portada",
     "video": "Muestra el videoclip, solo la portada, u oculta el reproductor.",
-    "note": "Los plugins están portados de pear-desktop (MIT)."
+    "note": "Plugins portados de pear-desktop (MIT); ideas de diseño de ytmdesktop2 (CC0).",
+    "backgroundName": "Fondo del reproductor",
+    "background": "La portada actual, desenfocada, como fondo detrás del reproductor.",
+    "lyricsName": "Letras sincronizadas",
+    "lyrics": "Letra línea a línea en la pestaña Letra, de Better Lyrics y LRCLIB.",
+    "toastName": "Cerrar avisos automáticamente",
+    "toast": "Cierra los avisos de YouTube Music tras unos segundos.",
+    "perfName": "Optimizaciones de rendimiento",
+    "perf": "Menos uso de CPU con CPU Tamer."
   },
   "extensions": {
     "title": "Extensiones del navegador",
@@ -105,8 +129,8 @@ TakaroI18n.add("es", "Español", {
     "title": "Preguntas",
     "q1": "¿Takaro es una app oficial de YouTube o de Discord?",
     "a1": "No. Takaro es un proyecto independiente y de código abierto, sin relación con Google, YouTube ni Discord.",
-    "q2": "¿Necesito tener Discord abierto?",
-    "a2": "Solo para el Rich Presence. Sin él, Takaro funciona como un reproductor normal, y se conecta solo cuando abres Discord.",
+    "q2": "¿Necesito Discord?",
+    "a2": "No. Takaro es ante todo un reproductor de música; Discord solo hace falta para la tarjeta de Rich Presence, que se conecta sola cuando Discord se abre.",
     "q3": "¿Dónde se guardan mis datos?",
     "a3": "Tu sesión de YouTube y tus ajustes se quedan en tu computadora, en el perfil de WebView2 en %LOCALAPPDATA%\\com.takaro.player. Takaro no tiene servidor y no recopila nada.",
     "q4": "¿Funciona en macOS o Linux?",
@@ -115,7 +139,7 @@ TakaroI18n.add("es", "Español", {
     "a5": "Copia uno de los archivos de traducción, traduce los valores y abre un pull request. El README explica dónde están los archivos, tanto de la app como de este sitio."
   },
   "footer": {
-    "tagline": "YouTube Music en el escritorio, con Discord Rich Presence.",
+    "tagline": "Un reproductor ligero de YouTube Music para Windows.",
     "releases": "Versiones",
     "issues": "Reportar un problema",
     "disclaimer": "Licencia MIT. YouTube Music es una marca de Google LLC y Discord es una marca de Discord Inc. Takaro no tiene relación con ninguna de las dos."

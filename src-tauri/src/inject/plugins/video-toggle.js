@@ -31,6 +31,15 @@
     .video-toggle-cover #song-video.ytmusic-player { display: none !important; }
     .video-toggle-cover #song-image.ytmusic-player { display: block !important; }
     .video-toggle-cover #av-id { display: none; }
+    /* Cover only: always a square cover, as large as the player area allows. */
+    .video-toggle-cover #main-panel.ytmusic-player-page {
+      container-type: size; display: flex !important; align-items: center !important; justify-content: center !important; }
+    .video-toggle-cover ytmusic-player#player {
+      width: min(100cqw, 100cqh) !important; height: min(100cqw, 100cqh) !important; max-width: none !important;
+      max-height: none !important; aspect-ratio: 1 / 1 !important; margin: auto !important; border-radius: 8px; overflow: hidden; }
+    .video-toggle-cover #song-image, .video-toggle-cover #song-image yt-img-shadow,
+    .video-toggle-cover #song-image #img { width: 100% !important; height: 100% !important; }
+    .video-toggle-cover #song-image #img { object-fit: cover !important; }
   `;
 
   // One choice: what the player area shows.
@@ -59,13 +68,22 @@
       if (cfg.display === 'hidden') return;
 
       const player = T.$('ytmusic-player');
-      const video = T.$('video');
+      const video = T.$('#movie_player video') || T.$('video');
       const coverOnly = cfg.display === 'cover';
 
+      // The player response of the track that is playing now, or null while the player still holds
+      // the previous track's (right after a track change). Using a stale one would put the previous
+      // song's cover over the new one.
+      const currentResponse = () => {
+        const pr = api?.getPlayerResponse?.();
+        const id = api?.getVideoData?.()?.video_id;
+        return pr && id && pr.videoDetails?.videoId === id ? pr : null;
+      };
+
       const forceThumbnail = (img) => {
-        const thumbs = api?.getPlayerResponse?.()?.videoDetails?.thumbnail?.thumbnails ?? [];
-        const url = thumbs.at(-1)?.url?.split('?')[0];
-        if (url) img.src = url;
+        const pr = currentResponse();
+        const url = pr?.videoDetails?.thumbnail?.thumbnails?.at(-1)?.url?.split('?')[0];
+        if (url && img.src !== url) img.src = url;
       };
 
       const setVideoState = (showVideo, remember = true) => {
@@ -97,9 +115,17 @@
       }
       const showButton = (show) => button && (button.style.display = show ? '' : 'none');
 
-      const songStarted = () => {
+      let retry = 0;
+      const songStarted = (tries = 0) => {
+        clearTimeout(retry);
+        const pr = currentResponse();
+        if (!pr) {
+          // Track data not updated yet: try again shortly.
+          if (tries < 20) retry = setTimeout(() => songStarted(tries + 1), 150);
+          return;
+        }
         const img = T.$('#song-image #img.style-scope.yt-img-shadow');
-        if (api.getPlayerResponse()?.videoDetails?.musicVideoType === 'MUSIC_VIDEO_TYPE_ATV') {
+        if (pr.videoDetails?.musicVideoType === 'MUSIC_VIDEO_TYPE_ATV') {
           // Track without a music video: always the cover, no switch.
           setVideoState(false, false);
           showButton(false);
@@ -131,7 +157,8 @@
           T.$('#player')?.prepend(T.h('div', { id: 'takaro-video-toggle', style: { display: 'flex' } }, button));
         }
         if (video) video.style.height = 'auto';
-        document.addEventListener('takaro:dataloaded', songStarted);
+        document.addEventListener('takaro:dataloaded', () => songStarted());
+        document.addEventListener('takaro:videodatachange', () => songStarted());
         songStarted();
       }, 0);
     },

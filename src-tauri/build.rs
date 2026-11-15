@@ -23,6 +23,8 @@ fn main() {
                 "open_external",
                 "set_tray_labels",
                 "titlebar_action",
+                "set_zoom",
+                "set_overlay",
                 "check_update",
                 "install_update",
             ]),

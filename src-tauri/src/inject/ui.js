@@ -30,10 +30,11 @@
     html.tk-intro-done::after { content: none; }
     /* Title bar of the frameless window. YTM sizes its layout from --ytmusic-nav-bar-height, so growing
        it by 40px pushes everything down; the bar sits in that space, over the page's own background. */
-    html, ytmusic-app, ytmusic-app-layout { --ytmusic-nav-bar-height: 104px !important; }
-    ytmusic-nav-bar { padding-top: 40px !important; box-sizing: border-box !important; }
+    /* --tk-z = page zoom: the title bar counter-zooms so it keeps its size (40px) at any scale. */
+    html, ytmusic-app, ytmusic-app-layout { --ytmusic-nav-bar-height: calc(64px + 40px / var(--tk-z, 1)) !important; }
+    ytmusic-nav-bar { padding-top: calc(40px / var(--tk-z, 1)) !important; box-sizing: border-box !important; }
     .center-content.ytmusic-nav-bar { height: 64px !important; }
-    #takaro-titlebar { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 6; display: flex;
+    #takaro-titlebar { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 6; display: flex; zoom: calc(1 / var(--tk-z, 1));
       align-items: stretch; color: #fff; user-select: none; -webkit-user-select: none; }
     #takaro-titlebar .tb-left { display: flex; align-items: center; gap: 2px; padding-left: 10px; }
     #takaro-titlebar .tb-drag { flex: 1; }
@@ -65,7 +66,7 @@
        and replaced by #takaro-scroll, which runs from below the title bar to above the player bar. */
     html { scrollbar-width: none; }
     html::-webkit-scrollbar { display: none; }
-    #takaro-scroll { position: fixed; right: 0; top: 40px; width: 12px; z-index: 2001; }
+    #takaro-scroll { position: fixed; right: 0; top: calc(40px / var(--tk-z, 1)); width: 12px; z-index: 2001; }
     #takaro-scroll[hidden] { display: none; }
     #takaro-scroll > div { position: absolute; left: 3px; right: 3px; border-radius: 6px; background: rgba(255,255,255,.28);
       transition: left .1s, right .1s, background .1s; }
@@ -82,6 +83,29 @@
     #progress-bar.ytmusic-player-controls {
       --paper-slider-knob-color: #781ec8 !important; --paper-slider-knob-start-color: #781ec8 !important;
       --paper-slider-knob-start-border-color: #781ec8 !important; }
+    /* Player bar: slightly smaller icons (same button size) for a cleaner look. */
+    ytmusic-player-bar yt-icon-button:not(.play-pause-button) yt-icon { width: 20px !important; height: 20px !important; }
+    ytmusic-player-bar .play-pause-button yt-icon { width: 34px !important; height: 34px !important; }
+    ytmusic-player-bar .ytSpecButtonShapeNextIcon, ytmusic-player-bar .ytSpecButtonShapeNextIcon .ytIconWrapperHost,
+    ytmusic-player-bar .ytSpecButtonShapeNextIcon .yt-icon-shape, ytmusic-player-bar .ytSpecButtonShapeNextIcon svg {
+      width: 20px !important; height: 20px !important; }
+    ytmusic-player-bar .right-controls-buttons > yt-icon-button,
+    ytmusic-player-bar .right-controls > yt-icon-button { margin: 0 2px !important; }
+    /* Player bar: full window width (YTM leaves room for its native scrollbar, which Takaro
+       replaces with an overlay one), and a narrower song info block so long titles don't push the
+       buttons around. */
+    ytmusic-player-bar { width: 100% !important; right: 0 !important; }
+    /* Darker player bar than YTM's #212121: the bar itself is see-through and the background layer
+       behind it carries the colour (frosted glass when the blur option is on). */
+    ytmusic-player-bar { background: transparent !important; }
+    #player-bar-background.ytmusic-app-layout { background: #141414 !important; }
+    ytmusic-player-bar .content-info-wrapper { max-width: 340px !important; }
+    /* Square cover in the player bar (video thumbnails are 16:9): cropped to fill. */
+    ytmusic-player-bar .thumbnail-image-wrapper, ytmusic-player-bar .thumbnail-image-wrapper img.image {
+      width: 40px !important; height: 40px !important; }
+    ytmusic-player-bar .thumbnail-image-wrapper img.image { object-fit: cover !important; border-radius: 4px; }
+    /* Only the artist (and album) under the title: no view or like counts (marked by the script below). */
+    ytmusic-player-bar .byline > .tk-stat { display: none !important; }
     /* Player bar: volume / repeat / shuffle and the volume slider always visible (YTM hides
        them behind a "◀" menu on narrow windows), smaller when the window is narrow. */
     ytmusic-player-bar .right-controls-buttons > .volume,
@@ -98,6 +122,23 @@
     ytmusic-nav-bar ytmusic-logo a::after {
       content: 'Takaro'; color: #fff; font: 600 20px/24px 'YouTube Sans', Roboto, sans-serif; letter-spacing: -.3px; white-space: nowrap; }
   `);
+
+  // Player bar subtitle: keep the artist / album links, hide the plain-text parts after the first
+  // "•" (view count, like count, year) and their separators. Language-independent: links vs. text.
+  T.waitFor('ytmusic-player-bar .byline').then((byline) => {
+    const mark = () => {
+      let afterBullet = false;
+      const kids = [...byline.children];
+      kids.forEach((el, i) => {
+        const bullet = el.tagName === 'SPAN' && el.textContent.trim() === '•';
+        if (bullet) afterBullet = true;
+        const hide = afterBullet && el.tagName !== 'A' && !(bullet && kids[i + 1]?.tagName === 'A');
+        if (el.classList.contains('tk-stat') !== hide) el.classList.toggle('tk-stat', hide);
+      });
+    };
+    new MutationObserver(mark).observe(byline, { childList: true, subtree: true, characterData: true });
+    mark();
+  });
 
   // The window is created hidden (no flash); show it once the splash is painted. Only on the first
   // page of this app session, so reloads/navigation never pop up a window that's in the tray.
@@ -133,6 +174,17 @@
     ).then(() => setTimeout(hide, 300));
     setTimeout(hide, 8000);
   }
+
+  // Page scaling (80%–120%): WebView zoom + a CSS variable the title bar uses to keep its size.
+  const zoomStyle = T.css('');
+  T.setZoom = (z) => {
+    z = Math.min(1.2, Math.max(0.8, Number(z) || 1));
+    T.save('__takaro', { zoom: z });
+    zoomStyle.textContent = `:root { --tk-z: ${z}; }`;
+    T.invoke('set_zoom', { zoom: z }).catch(() => {});
+    dispatchEvent(new Event('resize')); // re-measure the custom scrollbar
+  };
+  if (T.zoom() !== 1) T.setZoom(T.zoom());
 
   // ── Icons (Material, 24px) ──
   const ICONS = {
@@ -184,11 +236,19 @@
       border-radius: 9999px; color: var(--tk-fog); cursor: pointer; user-select: none; }
     .tk-pill:has(input:checked) { color: var(--tk-text); border-color: var(--tk-steel); }
     .tk-pill input { display: none; }
-    .tk input[type=checkbox] { accent-color: #ff3040; width: 14px; height: 14px; margin: 0; }
+    /* Option checkboxes, styled like the switches: dark box, gradient + white tick when on. */
+    .tk input.tk-box { -webkit-appearance: none; appearance: none; flex: none; width: 18px; height: 18px; margin: 0;
+      border-radius: 5px; border: 1px solid var(--tk-steel); background: var(--tk-edge); cursor: pointer;
+      display: grid; place-content: center; transition: background .15s, border-color .15s; }
+    .tk input.tk-box::after { content: ''; width: 9px; height: 5px; margin-top: -2px; border: solid #fff; border-width: 0 0 2px 2px;
+      transform: rotate(-45deg); opacity: 0; transition: opacity .15s; }
+    .tk input.tk-box:checked { background: var(--tk-accent); border-color: transparent; }
+    .tk input.tk-box:checked::after { opacity: 1; }
+    .tk input.tk-box:focus-visible { outline: 2px solid var(--tk-fog); outline-offset: 2px; }
+    .tk-opts label.tk-check { gap: 10px; }
     .tk select, .tk input[type=number] { background: var(--tk-surface); color: var(--tk-text); border: 1px solid var(--tk-edge);
       border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; outline: none; }
     .tk select:focus, .tk input[type=number]:focus { border-color: var(--tk-steel); }
-    .tk input[type=number] { width: 72px; }
     .tk-switch { position: relative; flex: none; width: 34px; height: 20px; }
     .tk-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
     .tk-switch span { position: absolute; inset: 0; border-radius: 9999px; background: var(--tk-edge); }
@@ -224,7 +284,15 @@
       font: 12px/1.5 inherit; font-family: inherit; color: var(--tk-fog); background: var(--tk-surface); border-radius: 8px; }
     .tk-status { color: var(--tk-fog); font-size: 13px; }
     .tk-status:empty { display: none; }
+    .tk-url { flex: 1; min-width: 0; background: var(--tk-surface); color: var(--tk-text); border: 1px solid var(--tk-edge);
+      border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; }
     .tk-status.error { color: var(--tk-link); }
+    .tk input.tk-color { -webkit-appearance: none; appearance: none; width: 30px; height: 30px; padding: 0; flex: none;
+      border: 1px solid var(--tk-steel); border-radius: 8px; background: none; cursor: pointer; overflow: hidden; }
+    .tk input.tk-color::-webkit-color-swatch-wrapper { padding: 0; }
+    .tk input.tk-color::-webkit-color-swatch { border: 0; border-radius: 7px; }
+    .tk-gradient { width: 56px; height: 6px; border-radius: 3px; flex: none; }
+    .tk input[type=number] { width: 84px; }
     /* Casting doesn't work in WebView2. */
     ytmusic-nav-bar ytmusic-cast-button { display: none !important; }
   `;
@@ -339,7 +407,12 @@
 
   // ── Settings panel ──
   let lastTab = 'plugins';
-  let needsReload = false; // survives closing/reopening the panel until the page reloads
+  // Extension changes that need a reload: id → enabled state at page load (toggling back undoes it),
+  // plus removals (always need one). Plugin/language changes are compared by T.settingsChanged().
+  const extLoaded = new Map();
+  const extNow = new Map();
+  let extRemoved = false;
+  const needsReload = () => T.settingsChanged() || extRemoved || [...extNow].some(([id, on]) => extLoaded.get(id) !== on);
 
   const switchEl = (checked, label, onchange) => {
     const input = h('input', { type: 'checkbox', checked, 'aria-label': label, onchange: () => onchange(input.checked) });
@@ -357,7 +430,7 @@
     const choiceLabel = (c) => T.t(`plugins.${p.id}.choices.${opt.key}.${c}`);
     switch (opt.type) {
       case 'checkbox': {
-        const input = h('input', { type: 'checkbox', checked: !!cfg[opt.key], onchange: () => set(input.checked) });
+        const input = h('input', { type: 'checkbox', class: 'tk-box', checked: !!cfg[opt.key], onchange: () => set(input.checked) });
         return h('label', { class: 'tk-check' }, input, label);
       }
       case 'number': {
@@ -388,7 +461,7 @@
   };
 
   const pluginsTab = (changed) => {
-    const cards = T.plugins.map((p) => {
+    const cards = T.plugins.filter((p) => !p.core).map((p) => {
       const name = T.t(`plugins.${p.id}.name`);
       const opts = p.options?.length
         ? h('div', { class: 'tk-opts', hidden: !p.config.enabled }, p.options.map((o) => optionEl(p, o, changed)))
@@ -421,6 +494,7 @@
             iconBtn('trash', T.t('extensions.remove'), async () => {
               try {
                 await T.invoke('remove_extension', { id: ext.id });
+                extRemoved = true;
                 card.remove();
                 if (!list.querySelector('.tk-card')) render([]);
                 changed();
@@ -429,6 +503,8 @@
               }
             }),
             switchEl(ext.enabled, ext.name, (on) => {
+              if (!extLoaded.has(ext.id)) extLoaded.set(ext.id, !on);
+              extNow.set(ext.id, on);
               T.invoke('set_extension_enabled', { id: ext.id, enabled: on }).then(changed, report);
             }))));
       return card;
@@ -482,13 +558,84 @@
       h('option', { value: 'quit', selected: !T.closeToTray() }, T.t('ui.closeQuit')),
       h('option', { value: 'tray', selected: T.closeToTray() }, T.t('ui.closeTray')));
 
+    const zoomSelect = h('select', { 'aria-label': T.t('ui.zoom'), onchange: () => T.setZoom(Number(zoomSelect.value)) },
+      [0.8, 0.9, 1, 1.1, 1.2].map((z) => h('option', { value: z, selected: Math.abs(T.zoom() - z) < 0.01 }, `${Math.round(z * 100)}%`)));
+
+    // OBS overlay: local now-playing page for a Browser Source
+    const overlayUrl = h('input', { class: 'tk-url', type: 'text', readonly: true, value: '' });
+    const overlayCopy = h('button', { class: 'tk-btn', type: 'button', onclick: async () => {
+      try {
+        await navigator.clipboard.writeText(overlayUrl.value);
+        overlayCopy.textContent = T.t('ui.overlay.copied');
+        setTimeout(() => (overlayCopy.textContent = T.t('ui.overlay.copy')), 1500);
+      } catch (e) {
+        report(e);
+      }
+    } }, T.t('ui.overlay.copy'));
+    const overlayStatus = h('span', { class: 'tk-status' });
+    const args = T.overlayArgs();
+    const portInput = h('input', { type: 'number', min: 1024, max: 65535, value: args.port, 'aria-label': T.t('ui.overlay.port'),
+      onchange: () => {
+        const port = Math.min(65535, Math.max(1024, Math.round(Number(portInput.value)) || T.OVERLAY_DEFAULTS.port));
+        portInput.value = port;
+        T.save('__takaro', { overlayPort: port });
+        applyOverlay(true);
+      } });
+    const colorInput = (key, value) => {
+      const input = h('input', { type: 'color', class: 'tk-color', value, 'aria-label': T.t('ui.overlay.gradient'),
+        onchange: () => {
+          T.save('__takaro', { [key]: input.value });
+          applyOverlay(true);
+          preview.style.background = `linear-gradient(90deg, ${fromInput.value}, ${toInput.value})`;
+        } });
+      return input;
+    };
+    const fromInput = colorInput('overlayFrom', args.from);
+    const toInput = colorInput('overlayTo', args.to);
+    const preview = h('span', { class: 'tk-gradient', style: `background: linear-gradient(90deg, ${args.from}, ${args.to})` });
+    const resetColors = h('button', { class: 'tk-btn', type: 'button', onclick: () => {
+      T.save('__takaro', { overlayFrom: undefined, overlayTo: undefined });
+      fromInput.value = T.OVERLAY_DEFAULTS.from;
+      toInput.value = T.OVERLAY_DEFAULTS.to;
+      preview.style.background = `linear-gradient(90deg, ${fromInput.value}, ${toInput.value})`;
+      applyOverlay(true);
+    } }, T.t('ui.overlay.reset'));
+    const overlayDetails = h('div', { class: 'tk-opts', hidden: !T.overlayEnabled() },
+      h('div', { class: 'tk-field' }, overlayUrl, overlayCopy),
+      h('div', { class: 'tk-field' }, h('span', null, T.t('ui.overlay.port')), portInput),
+      h('div', { class: 'tk-field' }, h('span', null, T.t('ui.overlay.gradient')),
+        h('div', { class: 'tk-actions', style: 'gap:8px' }, fromInput, preview, toInput, resetColors)),
+      h('div', { class: 'tk-desc' }, T.t('ui.overlay.hint')),
+      overlayStatus);
+    const applyOverlay = async (on) => {
+      overlayDetails.hidden = !on;
+      try {
+        const url = await T.invoke('set_overlay', T.overlayArgs(on));
+        overlayUrl.value = url;
+        overlayStatus.textContent = '';
+      } catch (e) {
+        overlayStatus.className = 'tk-status error';
+        overlayStatus.textContent = T.t('ui.overlay.error', { error: String(e) });
+      }
+    };
+    if (T.overlayEnabled()) applyOverlay(true);
+
     return [
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.language')), langSelect)),
+      h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.zoom')), zoomSelect)),
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.closeAction')), closeSelect)),
       h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
           h('div', null, h('div', { class: 'tk-name' }, T.t('update.title')), status),
           checkBtn)),
+      h('section', { class: 'tk-card' },
+        h('div', { class: 'tk-row' },
+          h('div', null, h('div', { class: 'tk-name' }, T.t('ui.overlay.title')), h('div', { class: 'tk-desc' }, T.t('ui.overlay.desc'))),
+          switchEl(T.overlayEnabled(), T.t('ui.overlay.title'), (on) => {
+            T.save('__takaro', { overlay: on });
+            applyOverlay(on);
+          })),
+        overlayDetails),
       h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
           h('div', { style: 'display:flex;align-items:center;gap:12px' }, logo(36),
@@ -498,28 +645,27 @@
         h('div', { class: 'tk-buttons', style: 'gap:16px' },
           link(T.t('ui.site'), 'https://takaro.nxty.cc'),
           link('GitHub', 'https://github.com/2nxty/Takaro'),
-          link(T.t('ui.issues'), 'https://github.com/2nxty/Takaro/issues')),
-        h('p', { class: 'tk-desc', style: 'margin:12px 0 0;color:var(--tk-ash)' }, T.t('ui.credits'))),
+          link(T.t('ui.issues'), 'https://github.com/2nxty/Takaro/issues'))),
     ];
   };
 
   T.openSettings = () => {
     if (document.querySelector('.tk-overlay')) return;
-    const enabledCount = () => T.plugins.filter((p) => p.config.enabled).length;
+    const listed = () => T.plugins.filter((p) => !p.core);
+    const enabledCount = () => listed().filter((p) => p.config.enabled).length;
 
     dialog({
       label: T.t('ui.settingsButton'),
       content: (close) => {
         const body = h('div', { class: 'tk-body', role: 'tabpanel' });
-        const foot = h('div', { class: 'tk-foot', hidden: !needsReload }, h('span', { class: 'tk-dot' }), h('p', null, T.t('ui.reloadNeeded')),
+        const foot = h('div', { class: 'tk-foot', hidden: !needsReload() }, h('span', { class: 'tk-dot' }), h('p', null, T.t('ui.reloadNeeded')),
           h('button', { class: 'tk-btn tk-btn-primary', type: 'button', onclick: () => T.reload() }, T.t('ui.reloadNow')));
         const count = h('span', { class: 'tk-count' });
         const changed = () => {
-          needsReload = true;
-          foot.hidden = false;
-          count.textContent = `${enabledCount()}/${T.plugins.length}`;
+          foot.hidden = !needsReload();
+          count.textContent = `${enabledCount()}/${listed().length}`;
         };
-        count.textContent = `${enabledCount()}/${T.plugins.length}`;
+        count.textContent = `${enabledCount()}/${listed().length}`;
 
         const tabs = [
           ['plugins', T.t('ui.tabs.plugins'), pluginsTab, count],
@@ -575,6 +721,7 @@
 
   const init = async () => {
     T.css(CSS);
+    if (T.overlayEnabled()) T.invoke('set_overlay', T.overlayArgs()).catch(report);
     const tray = ['play', 'pause', 'previous', 'next', 'show', 'settings', 'quit'];
     T.invoke('set_tray_labels', { labels: Object.fromEntries(tray.map((k) => [k, T.t(`tray.${k}`)])) }).catch(report);
     // ── Title bar (frameless window) ──
@@ -619,7 +766,7 @@
 
     // ── Page scrollbar (below the title bar, above the player bar) ──
     {
-      const BAR = 40;
+      const BAR = 40 / T.zoom(); // title bar height in page pixels
       const thumb = h('div');
       const track = h('div', { id: 'takaro-scroll', hidden: true }, thumb);
       let geo = null;

@@ -8,7 +8,7 @@
     id: 'precise-volume',
     defaults: { enabled: true, steps: 1, arrowsShortcut: true, savedVolume: null },
     options: [
-      { key: 'steps', type: 'number', min: 1, max: 20 },
+      { key: 'steps', type: 'number', min: 1, max: 20, live: true },
       { key: 'arrowsShortcut', type: 'checkbox' },
     ],
 

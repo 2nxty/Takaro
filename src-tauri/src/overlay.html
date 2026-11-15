@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Takaro — Now playing</title>
+<style>
+  /* OBS Browser Source: transparent page, ~480×140 for the card layout. */
+  html, body { margin: 0; background: transparent; overflow: hidden; }
+  body { font-family: 'Segoe UI', Inter, system-ui, sans-serif; color: #fafafa; }
+  .card { position: relative; display: flex; align-items: center; gap: 14px; margin: 10px; padding: 12px; max-width: 460px;
+    background: rgba(10, 10, 10, .82); border: 1px solid rgba(255, 255, 255, .08); border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35); transition: opacity .4s; }
+  .card.hidden { opacity: 0; }
+  .art { width: 96px; height: 96px; flex: none; border-radius: 8px; background: #262626 center / cover no-repeat; }
+  .info { min-width: 0; flex: 1; }
+  /* Takaro logo + name, top-right corner of the card */
+  .brand { position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; letter-spacing: .2px; color: rgba(250, 250, 250, .75); }
+  .brand svg { width: 14px; height: 14px; display: block; }
+  .title { margin-right: 72px; font-size: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .artist { font-size: 14px; color: #a1a1a1; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar { height: 4px; margin-top: 12px; border-radius: 2px; background: rgba(255, 255, 255, .15); overflow: hidden; }
+  .fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--from, #ff3040), var(--to, #781ec8)); transition: width 1s linear; }
+  .times { display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: #737373;
+    font-variant-numeric: tabular-nums; }
+  .paused .fill { background: #737373; }
+  /* ?layout=compact */
+  .compact .art { width: 56px; height: 56px; }
+  .compact .title { font-size: 15px; }
+  .compact .brand { top: 8px; right: 10px; font-size: 10px; }
+  .compact .artist { font-size: 12px; }
+  .compact .times { display: none; }
+  .compact .bar { margin-top: 8px; }
+  /* ?layout=text */
+  .text { background: none; border: 0; box-shadow: none; padding: 0; }
+  .text .art, .text .bar, .text .times { display: none; }
+  .text .title, .text .artist, .text .brand { text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
+  .text .brand { top: 0; right: 0; }
+</style>
+</head>
+<body>
+  <div class="card hidden" id="card">
+    <div class="brand">
+      <svg viewBox="0 0 1024 1024" aria-hidden="true">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3040"/><stop offset="1" stop-color="#781ec8"/></linearGradient></defs>
+        <circle cx="512" cy="512" r="480" fill="url(#g)"/><path d="M400 300v424l360-212z" fill="#fff"/>
+      </svg>Takaro
+    </div>
+    <div class="art" id="art"></div>
+    <div class="info">
+      <div class="title" id="title"></div>
+      <div class="artist" id="artist"></div>
+      <div class="bar"><div class="fill" id="fill"></div></div>
+      <div class="times"><span id="pos">0:00</span><span id="dur">0:00</span></div>
+    </div>
+  </div>
+<script>
+  const layout = new URLSearchParams(location.search).get('layout');
+  const card = document.getElementById('card');
+  if (layout === 'compact' || layout === 'text') card.classList.add(layout);
+  const $ = (id) => document.getElementById(id);
+  const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  let lastArt = null;
+  async function update() {
+    try {
+      const data = await (await fetch('/now-playing', { cache: 'no-store' })).json();
+      if (data.style) {
+        card.style.setProperty('--from', data.style.from);
+        card.style.setProperty('--to', data.style.to);
+      }
+      if (!data.playing) return card.classList.add('hidden');
+      const t = data.track;
+      card.classList.remove('hidden');
+      card.classList.toggle('paused', t.paused);
+      $('title').textContent = t.title;
+      $('artist').textContent = t.artist;
+      if (t.artwork !== lastArt) {
+        lastArt = t.artwork;
+        $('art').style.backgroundImage = t.artwork ? `url("${t.artwork.replace(/"/g, '%22')}")` : 'none';
+      }
+      $('fill').style.width = t.duration > 0 ? `${Math.min(100, (t.position / t.duration) * 100)}%` : '0';
+      $('pos').textContent = clock(t.position);
+      $('dur').textContent = clock(t.duration);
+    } catch {
+      card.classList.add('hidden'); // Takaro closed
+    }
+  }
+  update();
+  setInterval(update, 1000);
+</script>
+</body>
+</html>

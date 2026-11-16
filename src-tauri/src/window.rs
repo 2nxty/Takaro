@@ -29,6 +29,21 @@ pub fn create(app: &mut App, inject: &str, start_url: Option<String>) -> tauri::
         .background_color(Color(3, 3, 3, 255))
         .browser_extensions_enabled(true)
         .initialization_script(inject)
+        // Links that leave YouTube Music (Google account, terms, help…) open in the default browser.
+        .on_navigation(|url| {
+            if in_app(url) {
+                return true;
+            }
+            open_in_browser(url.as_str());
+            false
+        })
+        .on_new_window(|url, _features| {
+            if matches!(url.scheme(), "http" | "https") {
+                open_in_browser(url.as_str());
+                return tauri::webview::NewWindowResponse::Deny;
+            }
+            tauri::webview::NewWindowResponse::Allow
+        })
         .build()?;
 
     // Safety net: show the window even if the page never asks (offline, script error...).
@@ -48,6 +63,35 @@ pub fn create(app: &mut App, inject: &str, start_url: Option<String>) -> tauri::
         }
     });
     Ok(())
+}
+
+/// Pages that stay inside Takaro: YouTube Music itself, Google / YouTube sign-in, and the
+/// extension stores. Everything else on the web opens in the default browser.
+fn in_app(url: &tauri::Url) -> bool {
+    if !matches!(url.scheme(), "http" | "https") {
+        return true; // about:blank, data:, blob:, tak:// …
+    }
+    let host = url.host_str().unwrap_or("");
+    let path = url.path();
+    match host {
+        "music.youtube.com" | "accounts.google.com" | "accounts.youtube.com" | "consent.youtube.com"
+        | "consent.google.com" | "chromewebstore.google.com" | "microsoftedge.microsoft.com" => true,
+        // Sign-in / sign-out round trips pass through youtube.com and google.com.
+        "www.youtube.com" | "youtube.com" | "m.youtube.com" => {
+            ["/signin", "/logout", "/ServiceLogin", "/accounts"].iter().any(|p| path.starts_with(p))
+        }
+        "www.google.com" | "google.com" => path.starts_with("/accounts") || path.starts_with("/sorry"),
+        _ => host.starts_with("accounts.google."), // country sign-in domains (accounts.google.com.br …)
+    }
+}
+
+/// Opens a web page in the default browser.
+pub fn open_in_browser(url: &str) {
+    use std::os::windows::process::CommandExt;
+    let _ = std::process::Command::new("rundll32.exe")
+        .args(["url.dll,FileProtocolHandler", url])
+        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+        .spawn();
 }
 
 /// Set once the window has been shown at startup (so the safety net doesn't re-show a window

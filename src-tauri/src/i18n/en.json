@@ -10,6 +10,7 @@
     "close": "Close",
     "tabs": {
       "plugins": "Plugins",
+      "style": "Style",
       "extensions": "Extensions",
       "general": "General"
     },
@@ -30,11 +31,17 @@
       "desc": "Now-playing card for an OBS Browser Source.",
       "copy": "Copy",
       "copied": "Copied!",
-      "hint": "In OBS: Add → Browser Source → paste the URL (about 480×140). Other layouts: ?layout=compact or ?layout=text.",
+      "hint": "In OBS: Add → Browser Source → paste the URL (card about 480×140, compact 480×100).",
       "error": "Couldn't start the overlay: {error}",
       "port": "Port",
       "gradient": "Progress bar",
-      "reset": "Reset"
+      "reset": "Reset",
+      "style": "Style",
+      "styles": {
+        "card": "Card",
+        "compact": "Compact",
+        "text": "Text only"
+      }
     }
   },
   "tray": {
@@ -53,7 +60,9 @@
     "minimize": "Minimize",
     "maximize": "Maximize",
     "restore": "Restore",
-    "close": "Close"
+    "close": "Close",
+    "menu": "Menu",
+    "history": "History"
   },
   "update": {
     "title": "Updates",

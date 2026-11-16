@@ -13,9 +13,10 @@
       content: ''; position: fixed; inset: -60px; z-index: 0; pointer-events: none; opacity: 0;
       background: var(--tk-thumb, none) center / cover no-repeat;
       filter: blur(60px) saturate(1.3) brightness(.7);
-      transition: opacity .45s ease, background-image .6s ease;
+      transition: opacity .45s ease, background-image .6s ease, visibility 0s linear .45s;
+      visibility: hidden; /* not drawn at all (no GPU work) outside the player page, once faded out */
     }
-    html.tk-bg.tk-pp body::before { opacity: .6; }
+    html.tk-bg.tk-pp body::before { opacity: .6; visibility: visible; transition: opacity .45s ease, background-image .6s ease, visibility 0s; }
     /* Home fades out while the player slides (and fades) in, and back on close. */
     html.tk-bg ytmusic-app-layout > #content { transition: opacity .35s ease; }
     html.tk-bg.tk-pp ytmusic-app-layout > #content { opacity: 0; }
@@ -27,7 +28,8 @@
        scrolled content never shows through them and they never pop. Only the colour is animated
        (YTM's own short opacity fade stays), which avoids a grey band at the top of the page. */
     html.tk-bg #nav-bar-background, html.tk-bg #mini-guide-background, html.tk-bg #guide-wrapper {
-      transition: background-color .35s ease, opacity .2s !important; }
+      transition: background-color .35s ease !important; }
+    html.tk-bg #nav-bar-background { transition: none !important; }
     html.tk-bg.tk-pp ytmusic-player-page, html.tk-bg.tk-pp #nav-bar-background, html.tk-bg.tk-pp #mini-guide-background,
     html.tk-bg.tk-pp #guide-wrapper, html.tk-bg.tk-pp #guide-content { background: transparent !important; }
     /* No divider lines (nav bar, side menu, tabs) — always, so they can't flash back in while the
@@ -74,6 +76,7 @@
   let styled = false;
   T.register({
     id: 'player-background',
+    style: true, // listed in the Style tab
     defaults: { enabled: true },
 
     // Applied live: turning it on/off takes effect at once, no reload.

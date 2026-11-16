@@ -10,6 +10,7 @@
     "close": "Cerrar",
     "tabs": {
       "plugins": "Plugins",
+      "style": "Estilo",
       "extensions": "Extensiones",
       "general": "General"
     },
@@ -30,11 +31,17 @@
       "desc": "Tarjeta de “sonando ahora” para usar como fuente de navegador en OBS.",
       "copy": "Copiar",
       "copied": "¡Copiado!",
-      "hint": "En OBS: Añadir → Navegador (Browser Source) → pega la dirección (unos 480×140). Otros diseños: ?layout=compact o ?layout=text.",
+      "hint": "En OBS: Añadir → Navegador (Browser Source) → pega la dirección (tarjeta unos 480×140, compacto 480×100).",
       "error": "No se pudo iniciar el overlay: {error}",
       "port": "Puerto",
       "gradient": "Barra de progreso",
-      "reset": "Restablecer"
+      "reset": "Restablecer",
+      "style": "Estilo",
+      "styles": {
+        "card": "Tarjeta",
+        "compact": "Compacto",
+        "text": "Solo texto"
+      }
     }
   },
   "tray": {
@@ -53,7 +60,9 @@
     "minimize": "Minimizar",
     "maximize": "Maximizar",
     "restore": "Restaurar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "menu": "Menú",
+    "history": "Historial"
   },
   "update": {
     "title": "Actualizaciones",

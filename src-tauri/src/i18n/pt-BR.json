@@ -10,6 +10,7 @@
     "close": "Fechar",
     "tabs": {
       "plugins": "Plugins",
+      "style": "Estilo",
       "extensions": "Extensões",
       "general": "Geral"
     },
@@ -30,11 +31,17 @@
       "desc": "Card de “tocando agora” para usar como Browser Source no OBS.",
       "copy": "Copiar",
       "copied": "Copiado!",
-      "hint": "No OBS: Adicionar → Navegador (Browser Source) → cole o endereço (cerca de 480×140). Outros layouts: ?layout=compact ou ?layout=text.",
+      "hint": "No OBS: Adicionar → Navegador (Browser Source) → cole o endereço (card cerca de 480×140, compacto 480×100).",
       "error": "Não foi possível iniciar o overlay: {error}",
       "port": "Porta",
       "gradient": "Barra de progresso",
-      "reset": "Restaurar"
+      "reset": "Restaurar",
+      "style": "Estilo",
+      "styles": {
+        "card": "Card",
+        "compact": "Compacto",
+        "text": "Só texto"
+      }
     }
   },
   "tray": {
@@ -53,7 +60,9 @@
     "minimize": "Minimizar",
     "maximize": "Maximizar",
     "restore": "Restaurar",
-    "close": "Fechar"
+    "close": "Fechar",
+    "menu": "Menu",
+    "history": "Histórico"
   },
   "update": {
     "title": "Atualizações",

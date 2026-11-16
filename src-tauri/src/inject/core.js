@@ -46,6 +46,11 @@
       to: o.overlayTo || T.OVERLAY_DEFAULTS.to,
     };
   };
+  /** OBS overlay style (the page's ?layout=): card, compact or text. */
+  T.overlayLayout = () => {
+    const l = stored.__takaro?.overlayLayout;
+    return ['card', 'compact', 'text'].includes(l) ? l : 'card';
+  };
   let langCache = null;
   T.lang = () => {
     if (langCache) return langCache;
@@ -81,6 +86,12 @@
     document.dispatchEvent(new Event('takaro:beforereload')); // e.g. save the playback position
     forceReload = true;
     location.reload();
+  };
+  // Full-page navigation without YTM's "Leave site?" prompt (shown while something plays).
+  T.replace = (url) => {
+    document.dispatchEvent(new Event('takaro:beforereload'));
+    forceReload = true;
+    location.replace(url);
   };
 
   // Settings that only apply after a reload (plugins + language), as a stable string: the panel
@@ -232,8 +243,9 @@
     // Player "⋮" menu hook: plugins add their own rows. One batched observer for all of them;
     // rows are rebuilt every time the menu opens, so a menu YTM recycled never keeps a dead row.
     const menuHandlers = [];
+    // Opened from the bar's ⋮ button, or by right-clicking the bar itself (same menu).
     const isPlayerMenu = (menu) =>
-      !!menu?.parentElement?.ytEventForwardingBehavior?.forwarder_?.eventSink?.matches?.('ytmusic-menu-renderer.ytmusic-player-bar');
+      !!menu?.parentElement?.ytEventForwardingBehavior?.forwarder_?.eventSink?.matches?.('ytmusic-menu-renderer.ytmusic-player-bar, ytmusic-player-bar');
     const isTrackMenu = () => {
       for (const el of document.querySelectorAll('tp-yt-paper-listbox #navigation-endpoint')) {
         if (el?.data?.addToPlaylistEndpoint?.videoId || el?.data?.watchEndpoint?.videoId) return true;
@@ -243,15 +255,23 @@
     const syncMenu = () => {
       const menu = T.$('ytmusic-menu-popup-renderer tp-yt-paper-listbox');
       const ok = !!menu && isPlayerMenu(menu) && isTrackMenu();
+      let added = false;
       for (const h of menuHandlers) {
         for (const old of document.querySelectorAll(`.${h.cls}`)) if (!ok || old.parentElement !== menu) old.remove();
         if (ok && !menu.querySelector(`:scope > .${h.cls}`)) {
+          added = true;
           const row = h.build();
           row.classList.add(h.cls);
           const after = h.position.startsWith('after:') && menu.querySelector(`:scope > .${h.position.slice(6)}`);
           if (after) after.after(row);
           else h.position === 'end' ? menu.append(row) : menu.prepend(row);
         }
+      }
+      // YTM placed the menu for its own rows only: place it again with ours, or it no longer fits
+      // and gets a scrollbar although there's room.
+      if (added) {
+        const dropdown = menu.closest('tp-yt-iron-dropdown');
+        dropdown?.refit?.();
       }
     };
     let menuQueued = false;

@@ -86,7 +86,7 @@
           if (api.getVideoData?.()?.video_id !== pending.videoId) return false;
           write(sessionStorage, RETRY_KEY, true);
           write(sessionStorage, PENDING_KEY, pending);
-          location.replace(`/watch?v=${encodeURIComponent(pending.videoId)}`);
+          T.replace(`/watch?v=${encodeURIComponent(pending.videoId)}`);
           return true;
         };
         const watch = setInterval(() => reopenAlone() && clearInterval(watch), 300);
@@ -113,6 +113,33 @@
           document.removeEventListener('takaro:dataloaded', apply);
           write(sessionStorage, PENDING_KEY, null);
         }, 30000);
+      }
+
+      // Safety net: the page (URL, queue, player bar) moved to the song you picked, but the player kept
+      // playing the previous one. Seen after autoplay jumped to another playlist; could not be
+      // reproduced on demand. If both disagree for ~6 s (not during an ad or while loading), reopen the
+      // song the page shows — at most once every 30 s, so it can never loop.
+      {
+        const GUARD_KEY = 'takaro:desync-fixed-at';
+        let strikes = 0;
+        setInterval(() => {
+          const urlId = location.pathname === '/watch' && new URLSearchParams(location.search).get('v');
+          const playing = api.getVideoData?.()?.video_id;
+          const ad = T.$('#movie_player')?.classList.contains('ad-showing');
+          const loading = api.getPlayerState?.() === 3 || api.getPlayerState?.() === -1;
+          if (!urlId || !playing || ad || loading || restoring || urlId === playing) {
+            strikes = 0;
+            return;
+          }
+          if (++strikes < 3) return;
+          strikes = 0;
+          if (Date.now() - (read(sessionStorage, GUARD_KEY) || 0) < 30000) return;
+          write(sessionStorage, GUARD_KEY, Date.now());
+          const list = new URLSearchParams(location.search).get('list');
+          const params = new URLSearchParams({ v: urlId });
+          if (list && /^[\w-]+$/.test(list)) params.set('list', list);
+          T.replace(`/watch?${params}`);
+        }, 2000);
       }
 
       // Save what's playing.

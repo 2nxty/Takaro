@@ -40,6 +40,7 @@
     .video-toggle-cover #song-image, .video-toggle-cover #song-image yt-img-shadow,
     .video-toggle-cover #song-image #img { width: 100% !important; height: 100% !important; }
     .video-toggle-cover #song-image #img { object-fit: cover !important; }
+
   `;
 
   // One choice: what the player area shows.
@@ -50,6 +51,7 @@
 
   T.register({
     id: 'video-toggle',
+    style: true, // listed in the Style tab
     defaults: { enabled: true, display: 'toggle', hideVideo: false },
     options: [{ key: 'display', type: 'select', choices: MODES }],
 
@@ -80,14 +82,35 @@
         return pr && id && pr.videoDetails?.videoId === id ? pr : null;
       };
 
+      // The largest widescreen thumbnail (4:3 ones have black bars baked into the image).
       const forceThumbnail = (img) => {
         const pr = currentResponse();
-        const url = pr?.videoDetails?.thumbnail?.thumbnails?.at(-1)?.url?.split('?')[0];
+        const thumbs = [...(pr?.videoDetails?.thumbnail?.thumbnails || [])].sort((a, b) => (b.width || 0) - (a.width || 0));
+        const wide = thumbs.find((t) => t.width && t.height && t.width / t.height > 1.7) || thumbs[0];
+        const url = wide?.url?.split('?')[0];
         if (url && img.src !== url) img.src = url;
+      };
+
+      // While the video isn't shown, it's streamed at the lowest quality (144p): YTM otherwise keeps
+      // downloading and decoding 720p/1080p nobody sees. Audio is a separate stream, unaffected.
+      let lowered = false;
+      const videoQuality = (show) => {
+        try {
+          if (!show) {
+            api.setPlaybackQualityRange?.('tiny', 'tiny');
+            api.setPlaybackQuality?.('tiny');
+            lowered = true;
+          } else if (lowered) {
+            api.setPlaybackQualityRange?.('auto', 'auto');
+            api.setPlaybackQuality?.('auto');
+            lowered = false;
+          }
+        } catch {}
       };
 
       const setVideoState = (showVideo, remember = true) => {
         if (remember && !coverOnly) T.save('video-toggle', { hideVideo: !showVideo });
+        videoQuality(showVideo);
         if (checkbox) checkbox.checked = showVideo;
         if (!player) return;
         player.style.margin = showVideo ? '' : 'auto 0px';

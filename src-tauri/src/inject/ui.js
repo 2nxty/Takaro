@@ -13,7 +13,7 @@
   const SPLASH_URI =
     'data:image/svg+xml,' +
     encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 268 72"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 0 221 72"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
         `<stop offset="0" stop-color="#ff3040"/><stop offset="1" stop-color="#781ec8"/></linearGradient></defs>` +
         `<circle cx="36" cy="36" r="34" fill="url(#g)"/><path d="M28 21v30l25-15z" fill="#fff"/>` +
         `<text x="86" y="52" fill="#fff" font-family="'Segoe UI Variable Display','Segoe UI',Roboto,sans-serif" ` +
@@ -23,21 +23,75 @@
     html, body { background: #030303; }
     /* Intro: black screen with the Takaro logo from the first frame; fades out when YTM is ready. */
     html::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;
-      background: #030303 url("${SPLASH_URI}") center / 268px 72px no-repeat; transition: opacity .35s ease;
+      background: #030303 url("${SPLASH_URI}") center / 221px 72px no-repeat; transition: opacity .35s ease;
       animation: tk-intro .6s ease-out both; }
-    @keyframes tk-intro { from { background-size: 241px 65px; } to { background-size: 268px 72px; } }
+    /* (The artwork is cropped to the drawing itself, so "center" really centres the logo.) */
+    @keyframes tk-intro { from { background-size: 200px 65px; } to { background-size: 221px 72px; } }
     html.tk-ready::after { opacity: 0; }
     html.tk-intro-done::after { content: none; }
-    /* Title bar of the frameless window. YTM sizes its layout from --ytmusic-nav-bar-height, so growing
-       it by 40px pushes everything down; the bar sits in that space, over the page's own background. */
-    /* --tk-z = page zoom: the title bar counter-zooms so it keeps its size (40px) at any scale. */
-    html, ytmusic-app, ytmusic-app-layout { --ytmusic-nav-bar-height: calc(64px + 40px / var(--tk-z, 1)) !important; }
-    ytmusic-nav-bar { padding-top: calc(40px / var(--tk-z, 1)) !important; box-sizing: border-box !important; }
-    .center-content.ytmusic-nav-bar { height: 64px !important; }
-    #takaro-titlebar { position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 6; display: flex; zoom: calc(1 / var(--tk-z, 1));
+    /* One top row (48px): Takaro's title bar ( ‹ › … ⚙ — □ × ) with YouTube Music's nav bar (logo,
+       search, avatar) laid over it. Stacking: nav bar background (3) < title bar (4) < nav bar (5);
+       the nav bar lets clicks through except on its controls, so empty areas drag the window.
+       The ☰ (side menu) button is Takaro's, left of ‹ ›. --tk-z = page zoom: the row keeps 48 device
+       pixels at any scale (the title bar counter-zooms). */
+    html, ytmusic-app, ytmusic-app-layout { --ytmusic-nav-bar-height: calc(48px / var(--tk-z, 1) + 16px) !important; }
+    ytmusic-nav-bar { padding-top: 0 !important; height: calc(48px / var(--tk-z, 1)) !important; box-sizing: border-box !important; pointer-events: none; }
+    ytmusic-nav-bar .left-content.ytmusic-nav-bar, ytmusic-nav-bar .center-content.ytmusic-nav-bar,
+    ytmusic-nav-bar .right-content.ytmusic-nav-bar { height: calc(48px / var(--tk-z, 1)) !important; }
+    ytmusic-nav-bar ytmusic-logo, ytmusic-nav-bar ytmusic-search-box, ytmusic-nav-bar .right-content > * { pointer-events: auto; }
+    ytmusic-nav-bar #guide-button { display: none !important; } /* replaced by the title bar's ☰ */
+    ytmusic-nav-bar .left-content.ytmusic-nav-bar { padding-left: calc(134px / var(--tk-z, 1)) !important; width: auto !important; }
+    ytmusic-nav-bar .center-content.ytmusic-nav-bar { padding-left: 0 !important; }
+    /* Search and avatar pinned to the window (same place on every page), the search a bit shorter. */
+    ytmusic-nav-bar ytmusic-search-box { position: fixed !important; left: 50% !important; transform: translateX(-50%);
+      margin: 0 !important; top: calc(24px / var(--tk-z, 1) - 17px) !important; }
+    ytmusic-nav-bar ytmusic-settings-button { position: fixed !important; margin: 0 !important;
+      right: calc(150px / var(--tk-z, 1)) !important; top: calc(24px / var(--tk-z, 1) - 13px) !important; }
+    /* (On the search page YTM shifts the centre column with a transform, which would also move the
+       fixed search box; and its square border / shadow would show around the rounded box.) */
+    ytmusic-nav-bar .center-content.ytmusic-nav-bar { transform: none !important; }
+    ytmusic-nav-bar ytmusic-search-box { border: 0 !important; outline: none !important; }
+    ytmusic-nav-bar ytmusic-search-box:not([opened]) .search-container { box-shadow: none !important; }
+    ytmusic-nav-bar ytmusic-search-box .search-box { height: 32px !important; }
+    /* A bit darker than YTM's (background and border). */
+    ytmusic-nav-bar ytmusic-search-box:not([opened]) .search-box {
+      background: rgba(255, 255, 255, .08) !important; border-color: rgba(255, 255, 255, .09) !important; }
+    ytmusic-nav-bar ytmusic-search-box .search-box #input { height: 30px !important; font-size: 14px !important; }
+    ytmusic-nav-bar ytmusic-search-box .search-box .search-button { width: 32px !important; height: 32px !important; padding: 4px !important; }
+    ytmusic-nav-bar ytmusic-search-box .search-box .search-button yt-icon { width: 20px; height: 20px; }
+    /* Side menu: no background of its own (the page's gradient / cover shows through). */
+    #guide-wrapper, #mini-guide-background { background: transparent !important; }
+    /* Home and other pages: content as wide as the player page (56px margins instead of 100px). */
+    html, ytmusic-app, ytmusic-app-layout, ytmusic-browse-response {
+      --ytmusic-content-width: min(calc(100vw - 112px - var(--ytmusic-guide-width, 72px) - 12px), 1478px) !important; }
+    #nav-bar-background { z-index: 3 !important; }
+    /* Artist pages: the banner goes up to the top of the window. YTM does that with [immersive-mode],
+       which it sometimes fails to set (coming from a scrolled page): the page then kept its 64px top
+       padding, a black band above the banner. */
+    #content.ytmusic-app > ytmusic-browse-response:has(ytmusic-immersive-header-renderer) { padding-top: 0 !important; }
+    /* Home: the mood chips (Podcasts, Relax…) start level with the side menu's first button. */
+    ytmusic-browse-response ytmusic-chip-cloud-renderer ytmusic-chip-cloud-chip-renderer { padding-top: 2px !important; }
+    /* Frosted glass behind the top row (instead of YTM's tall solid black band). The blur is always
+       there (invisible over the still page: nothing pops in when scrolling starts); only the dark tint
+       fades in with the first 120px of scroll (--tk-sc, set by Takaro in the scroll event itself).
+       It fades out downwards, no hard edge, and stops above the home's mood chips. */
+    #nav-bar-background { height: calc(70px / var(--tk-z, 1)) !important; opacity: 1 !important; transition: none !important;
+      background: linear-gradient(to bottom, rgba(3, 3, 3, calc(.55 * var(--tk-sc, 0))), rgba(3, 3, 3, calc(.35 * var(--tk-sc, 0))) 60%,
+        rgba(3, 3, 3, 0)) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.3); backdrop-filter: blur(20px) saturate(1.3);
+      -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent); mask-image: linear-gradient(to bottom, #000 62%, transparent); }
+    /* Pages whose tabs stick to the top (search results): the tabs sit right under the top row
+       (YTM leaves a 16px gap there that content scrolled through), and the glass stops at the row. */
+    ytmusic-tabs#tabs { top: calc(48px / var(--tk-z, 1)) !important; }
+    html.tk-sticky-tabs #nav-bar-background { height: calc(48px / var(--tk-z, 1)) !important;
+      -webkit-mask-image: none; mask-image: none; }
+    html.tk-pp #nav-bar-background { -webkit-backdrop-filter: none; backdrop-filter: none; }
+    #takaro-titlebar { position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 4; display: flex; zoom: calc(1 / var(--tk-z, 1));
       align-items: stretch; color: #fff; user-select: none; -webkit-user-select: none; }
     #takaro-titlebar .tb-left { display: flex; align-items: center; gap: 2px; padding-left: 10px; }
     #takaro-titlebar .tb-drag { flex: 1; }
+    #takaro-titlebar .tb-settings { display: flex; align-items: center; gap: 2px; margin-right: 52px; }
+    ytmusic-nav-bar .history-icon-button { display: none !important; } /* replaced by the title bar's */
     #takaro-titlebar .tb-icon { width: 36px; height: 32px; border: 0; border-radius: 8px; padding: 0; background: transparent;
       color: inherit; display: grid; place-items: center; cursor: default; }
     #takaro-titlebar .tb-icon:hover { background: rgba(255,255,255,.1); }
@@ -66,7 +120,7 @@
        and replaced by #takaro-scroll, which runs from below the title bar to above the player bar. */
     html { scrollbar-width: none; }
     html::-webkit-scrollbar { display: none; }
-    #takaro-scroll { position: fixed; right: 0; top: calc(40px / var(--tk-z, 1)); width: 12px; z-index: 2001; }
+    #takaro-scroll { position: fixed; right: 0; top: calc(48px / var(--tk-z, 1)); width: 12px; z-index: 2001; }
     #takaro-scroll[hidden] { display: none; }
     #takaro-scroll > div { position: absolute; left: 3px; right: 3px; border-radius: 6px; background: rgba(255,255,255,.28);
       transition: left .1s, right .1s, background .1s; }
@@ -99,13 +153,35 @@
        behind it carries the colour (frosted glass when the blur option is on). */
     ytmusic-player-bar { background: transparent !important; }
     #player-bar-background.ytmusic-app-layout { background: #141414 !important; }
-    ytmusic-player-bar .content-info-wrapper { max-width: 340px !important; }
+    ytmusic-player-bar .content-info-wrapper { max-width: 210px !important; } /* ~26 characters */
+    /* Subtitle: YTM's own line (artist • views • likes • year…) is replaced by Takaro's, rebuilt from
+       its links: artists and album for a song, only the channel for a video. */
+    ytmusic-player-bar .byline.ytmusic-player-bar { display: none !important; }
+    ytmusic-player-bar .tk-byline { display: block; color: var(--ytmusic-text-secondary, #aaa); font-size: 14px; line-height: 20px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    ytmusic-player-bar .tk-byline a { color: inherit; text-decoration: none; cursor: pointer; }
+    ytmusic-player-bar .tk-byline a:hover { color: #fff; text-decoration: underline; }
+    /* Buttons: ⋮ moves to the right side (before the volume), captions next to the open/close player button. */
+    ytmusic-player-bar .middle-controls-buttons > ytmusic-menu-renderer.menu {
+      position: absolute !important; top: 50%; transform: translateY(-50%); margin: 0 !important; z-index: 1; }
+    ytmusic-player-bar .right-controls { padding-left: 44px !important; pointer-events: none; }
+    ytmusic-player-bar .right-controls > * { pointer-events: auto; }
+    ytmusic-player-bar .right-controls-buttons > .captions { order: 1; }
+    /* Player page: the queue panel starts level with the top of the cover (its tab labels sit in
+       the middle of a 49px row) and is 32px wider on the left; the cover doesn't move. */
+    ytmusic-player-page #side-panel { margin-top: -14px !important; margin-left: 24px !important;
+      width: calc(var(--ytmusic-player-page-side-panel-width) + 32px) !important; max-width: 832px !important; }
+    ytd-compact-link-renderer.tk-hide { display: none !important; }
+    /* No blue text selection in the player (bar and player page: clicking around there selected
+       titles); elsewhere, selected text is tinted in Takaro's colour instead of blue. */
+    ytmusic-player-bar, ytmusic-player-page { -webkit-user-select: none; user-select: none; }
+    ytmusic-player-page input, ytmusic-player-page textarea, ytmusic-player-page [contenteditable] { -webkit-user-select: text; user-select: text; }
+    ::selection { background: rgba(120, 30, 200, .55); color: #fff; }
     /* Square cover in the player bar (video thumbnails are 16:9): cropped to fill. */
     ytmusic-player-bar .thumbnail-image-wrapper, ytmusic-player-bar .thumbnail-image-wrapper img.image {
       width: 40px !important; height: 40px !important; }
     ytmusic-player-bar .thumbnail-image-wrapper img.image { object-fit: cover !important; border-radius: 4px; }
-    /* Only the artist (and album) under the title: no view or like counts (marked by the script below). */
-    ytmusic-player-bar .byline > .tk-stat { display: none !important; }
+    ytmusic-player-bar .thumbnail-image-wrapper, #song-image, #song-image yt-img-shadow { overflow: hidden; border-radius: 4px; }
     /* Player bar: volume / repeat / shuffle and the volume slider always visible (YTM hides
        them behind a "◀" menu on narrow windows), smaller when the window is narrow. */
     ytmusic-player-bar .right-controls-buttons > .volume,
@@ -113,7 +189,8 @@
     ytmusic-player-bar .right-controls-buttons > .shuffle { display: block !important; }
     ytmusic-player-bar .right-controls-buttons > .expand-button,
     ytmusic-player-bar .right-controls > ytmusic-player-expanding-menu { display: none !important; }
-    ytmusic-player-bar #volume-slider.volume-slider { display: flex !important; opacity: 1 !important; width: 88px !important; }
+    ytmusic-player-bar #volume-slider.volume-slider { display: flex !important; opacity: 1 !important; width: 88px !important; flex: none !important;
+      pointer-events: auto !important; } /* (YTM only lets it be clicked while its hover menu is open) */
     @media (max-width: 1100px) {
       ytmusic-player-bar #volume-slider.volume-slider { width: 64px !important; }
       ytmusic-player-bar .right-controls-buttons > yt-icon-button,
@@ -123,22 +200,239 @@
       content: 'Takaro'; color: #fff; font: 600 20px/24px 'YouTube Sans', Roboto, sans-serif; letter-spacing: -.3px; white-space: nowrap; }
   `);
 
-  // Player bar subtitle: keep the artist / album links, hide the plain-text parts after the first
-  // "•" (view count, like count, year) and their separators. Language-independent: links vs. text.
-  T.waitFor('ytmusic-player-bar .byline').then((byline) => {
-    const mark = () => {
-      let afterBullet = false;
-      const kids = [...byline.children];
-      kids.forEach((el, i) => {
-        const bullet = el.tagName === 'SPAN' && el.textContent.trim() === '•';
-        if (bullet) afterBullet = true;
-        const hide = afterBullet && el.tagName !== 'A' && !(bullet && kids[i + 1]?.tagName === 'A');
-        if (el.classList.contains('tk-stat') !== hide) el.classList.toggle('tk-stat', hide);
+  // Player bar subtitle, rebuilt by Takaro (YTM's is hidden). Its links are kept in order: artists
+  // (with the " & " / ", " between them) and the album for a song, the channel for a video. Plain
+  // text — views, likes, year — is dropped. Language-independent: links vs. text. Without any link,
+  // the media session's artist is used. The whole player bar is watched and everything re-queried
+  // every time, so YTM re-rendering the bar (or swapping the line for a new element) can't undo it.
+  const subtitle = () => {
+    const byline = T.$('ytmusic-player-bar .byline.ytmusic-player-bar');
+    if (!byline) return;
+    let line = byline.parentElement.querySelector(':scope > .tk-byline');
+    if (!line) {
+      line = h('div', { class: 'tk-byline' });
+      byline.after(line);
+    }
+    const nodes = [...byline.childNodes];
+    const parts = []; // links, with the separator text between two links
+    let gap = '';
+    for (const n of nodes) {
+      if (n.nodeType === 1 && n.tagName === 'A' && n.textContent.trim()) {
+        if (parts.length) parts.push(gap.trim() === '•' ? ' • ' : gap.replace(/\s+/g, ' ') || ' ');
+        parts.push(n);
+        gap = '';
+      } else {
+        gap += n.textContent;
+        // Text that isn't just a separator (views, likes, year) ends the run of links.
+        if (/[^\s•&,·]/.test(n.textContent) && parts.length) break;
+      }
+    }
+    let key;
+    if (parts.length) key = parts.map((p) => (typeof p === 'string' ? p : `${p.textContent}|${p.getAttribute('href')}`)).join('');
+    else {
+      const m = navigator.mediaSession?.metadata;
+      key = m?.artist?.trim() || byline.textContent.split('•').map((x) => x.trim()).find(Boolean) || '';
+    }
+    if (line.dataset.key === key) return;
+    line.dataset.key = key;
+    line.replaceChildren(...parts.map((p) => {
+      if (typeof p === 'string') return p;
+      const a = h('a', { href: p.getAttribute('href') || '#' }, p.textContent.trim());
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Through YTM's own link, so it navigates inside the app.
+        const same = [...(T.$('ytmusic-player-bar .byline.ytmusic-player-bar')?.querySelectorAll('a') || [])]
+          .find((x) => x.getAttribute('href') === p.getAttribute('href'));
+        (same || p).click();
       });
+      return a;
+    }));
+    if (!parts.length) line.textContent = key;
+    line.title = line.textContent;
+  };
+
+  // One watcher for the whole player bar: subtitle, ⋮ position and the like are re-checked (once
+  // per frame at most) whenever YTM changes anything in it.
+  const barFixes = [subtitle];
+  T.onBarChange = (fn) => barFixes.push(fn);
+  T.waitFor('ytmusic-player-bar').then((bar) => {
+    let queued = false;
+    const run = () => {
+      queued = false;
+      for (const fn of barFixes) {
+        try {
+          fn();
+        } catch (e) {
+          console.warn('[Takaro] player bar fix', e);
+        }
+      }
     };
-    new MutationObserver(mark).observe(byline, { childList: true, subtree: true, characterData: true });
-    mark();
+    const schedule = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(run);
+    };
+    new MutationObserver(schedule).observe(bar, { childList: true, subtree: true, characterData: true });
+    document.addEventListener('takaro:dataloaded', () => setTimeout(schedule, 800)); // media session catches up
+    schedule();
   });
+
+  // Top row tint: 0 at the top of the page, fully on after 120px of scroll. Set in the scroll
+  // event itself, which runs before the frame is painted.
+  {
+    // (This script runs before <html> exists, so the root is looked up each time.)
+    let last = '';
+    const sync = () => {
+      const root = document.documentElement;
+      const v = Math.min(1, Math.max(0, scrollY / 120)).toFixed(2);
+      if (root && v !== last) root.style.setProperty('--tk-sc', (last = v));
+    };
+    // html.tk-sticky-tabs: the page on screen has sticky tabs (search results). Checked for visibility,
+    // since YTM keeps pages visited before in the document, hidden. Re-checked while scrolling
+    // (at most 4× a second; it only matters on a scrolled page) and after navigation.
+    let tabsAt = 0;
+    const tabs = () => {
+      tabsAt = Date.now();
+      const on = [...document.querySelectorAll('ytmusic-tabs#tabs')].some((t) => t.getClientRects().length > 0);
+      const root = document.documentElement;
+      if (root && root.classList.contains('tk-sticky-tabs') !== on) root.classList.toggle('tk-sticky-tabs', on);
+    };
+    addEventListener('scroll', () => {
+      sync();
+      if (Date.now() - tabsAt > 250) tabs();
+    }, { passive: true });
+    for (const target of [window, document]) {
+      target.addEventListener('yt-navigate-finish', () => requestAnimationFrame(() => {
+        sync();
+        tabs();
+        setTimeout(tabs, 600);
+      }));
+    }
+    document.addEventListener('DOMContentLoaded', sync);
+  }
+
+  // Player bar: the song's ⋮ menu shows on the right side, before the volume slider. Only drawn
+  // there (YTM re-renders it in its own place, so the element itself must not be moved). Re-placed
+  // on every bar change (see T.onBarChange), on resize and on layout switches (centered buttons).
+  const placeMenu = () => {
+    const right = T.$('ytmusic-player-bar .right-controls');
+    const menu = T.$('ytmusic-player-bar .middle-controls-buttons > ytmusic-menu-renderer.menu');
+    const parent = menu?.offsetParent;
+    // Just left of the first visible control on the right (the volume slider).
+    const first = right && [...right.children].find((el) => el.offsetWidth > 0);
+    if (!menu || !parent || !first) return;
+    const x = Math.round(first.getBoundingClientRect().left - parent.getBoundingClientRect().left - 42);
+    if (menu.style.left !== `${x}px`) menu.style.left = `${x}px`;
+  };
+  T.onBarChange(placeMenu);
+  addEventListener('resize', placeMenu);
+  T.waitFor('ytmusic-player-bar').then(() => {
+    new MutationObserver(() => requestAnimationFrame(placeMenu)).observe(document.documentElement, { attributeFilter: ['class'] });
+    new ResizeObserver(placeMenu).observe(T.$('ytmusic-player-bar'));
+  });
+
+  // Right-click on the player bar while its menu is open: just close the menu (YTM would open it
+  // again, stuck in the corner of the window).
+  {
+    const openMenu = () => [...document.querySelectorAll('tp-yt-iron-dropdown')]
+      .find((d) => d.offsetWidth > 0 && d.querySelector('ytmusic-menu-popup-renderer'));
+    let wasOpen = null;
+    addEventListener('pointerdown', (e) => {
+      wasOpen = e.button === 2 && e.target.closest?.('ytmusic-player-bar') ? openMenu() || null : null;
+    }, true);
+    addEventListener('contextmenu', (e) => {
+      if (!wasOpen || !e.target.closest?.('ytmusic-player-bar')) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const menu = openMenu() || wasOpen;
+      wasOpen = null;
+      if (typeof menu.close === 'function') menu.close();
+      else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
+    }, true);
+  }
+
+  // Covers: video thumbnails (i.ytimg.com) often have black bars baked in above and below (4:3
+  // thumbnails of widescreen videos, or "cinema" videos). Measured from the pixels, per image: only
+  // when there really are symmetric near-black bands is the picture zoomed just enough to hide them.
+  // Album covers (square, other hosts) and thumbnails without bars are left alone.
+  {
+    // (The big cover only in "cover only" mode, where it fills a square.)
+    const SELECTOR = 'ytmusic-player-bar .thumbnail-image-wrapper img.image, .video-toggle-cover #song-image #img';
+    const cache = new Map(); // src → zoom (1 = none)
+    const measure = (src) => {
+      if (cache.has(src)) return cache.get(src);
+      const job = new Promise((resolve) => {
+        const probe = new Image();
+        probe.crossOrigin = 'anonymous';
+        probe.onerror = () => resolve(1);
+        probe.onload = () => {
+          try {
+            const W = 48;
+            const H = Math.max(8, Math.round((W * probe.naturalHeight) / probe.naturalWidth));
+            const c = document.createElement('canvas');
+            c.width = W;
+            c.height = H;
+            const g = c.getContext('2d', { willReadFrequently: true });
+            g.drawImage(probe, 0, 0, W, H);
+            const px = g.getImageData(0, 0, W, H).data;
+            const dark = (y) => {
+              let max = 0;
+              for (let x = 0; x < W; x++) {
+                const i = (y * W + x) * 4;
+                max = Math.max(max, px[i], px[i + 1], px[i + 2]);
+              }
+              return max < 28; // the whole row is (nearly) black
+            };
+            let top = 0;
+            while (top < H / 3 && dark(top)) top++;
+            let bottom = 0;
+            while (bottom < H / 3 && dark(H - 1 - bottom)) bottom++;
+            const bars = Math.min(top, bottom);
+            // Real letterbox: both sides, about the same size, at least ~4% of the height each.
+            const ok = bars >= Math.max(2, H * 0.04) && Math.abs(top - bottom) <= Math.max(2, H * 0.03);
+            resolve(ok ? Math.min(1.6, H / (H - 2 * bars)) : 1);
+          } catch {
+            resolve(1); // no pixel access: leave it as it is
+          }
+        };
+        probe.src = src;
+      });
+      cache.set(src, job);
+      if (cache.size > 200) cache.delete(cache.keys().next().value);
+      return job;
+    };
+    const fit = async (img) => {
+      const src = img.currentSrc || img.src;
+      let host = '';
+      try {
+        host = new URL(src).hostname;
+      } catch {}
+      if (!/(^|\.)ytimg\.com$/.test(host)) {
+        if (img.style.transform) img.style.transform = '';
+        return;
+      }
+      const zoom = await measure(src);
+      if ((img.currentSrc || img.src) !== src) return; // changed meanwhile
+      const t = zoom > 1.01 ? `scale(${zoom.toFixed(3)})` : '';
+      if (img.style.transform !== t) img.style.transform = t;
+    };
+    document.addEventListener('load', (e) => e.target.matches?.(SELECTOR) && fit(e.target), true);
+    T.waitFor('ytmusic-player-bar .thumbnail-image-wrapper img.image').then(() => document.querySelectorAll(SELECTOR).forEach(fit));
+  }
+
+  // Account menu: no "Upload music" (recognised by its icon, so in any language).
+  {
+    const hideUpload = () => {
+      for (const el of document.querySelectorAll('ytd-compact-link-renderer')) {
+        const icon = (el.data || el.__data?.data)?.icon?.iconType;
+        const hide = icon === 'CLOUD_UPLOAD'; // (renderers get reused, so this also un-hides)
+        if (el.classList.contains('tk-hide') !== hide) el.classList.toggle('tk-hide', hide);
+      }
+    };
+    document.addEventListener('click', (e) => {
+      if (e.target.closest?.('ytmusic-settings-button')) [0, 150, 500, 1200].forEach((ms) => setTimeout(hideUpload, ms));
+    }, true);
+  }
 
   // The window is created hidden (no flash); show it once the splash is painted. Only on the first
   // page of this app session, so reloads/navigation never pop up a window that's in the tray.
@@ -190,6 +484,8 @@
   const ICONS = {
     settings: 'M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z',
     back: 'M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z',
+    menu: 'M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z',
+    history: 'M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z',
     forward: 'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
     close: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
     trash: 'M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
@@ -205,6 +501,9 @@
       --tk-accent: linear-gradient(135deg, #ff3040, #781ec8);
       font: 400 14px/1.43 Inter, 'Segoe UI', Roboto, system-ui, sans-serif; color: var(--tk-text); }
     .tk *, .tk *::before, .tk *::after { box-sizing: border-box; }
+    /* Takaro's dialogs: no text selection (only in fields). */
+    .tk-overlay { -webkit-user-select: none; user-select: none; }
+    .tk-overlay input, .tk-overlay textarea { -webkit-user-select: text; user-select: text; }
     .tk-overlay { position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,.72); display: grid; place-items: center; padding: 16px; }
     .tk-panel { width: min(720px, 100%); height: min(640px, calc(100vh - 32px)); display: flex; flex-direction: column;
       background: var(--tk-canvas); border: 1px solid var(--tk-edge); border-radius: 10px; overflow: hidden;
@@ -460,8 +759,9 @@
     }
   };
 
-  const pluginsTab = (changed) => {
-    const cards = T.plugins.filter((p) => !p.core).map((p) => {
+  // Plugins tab: features. Style tab: the plugins that only change the look (registered with style: true).
+  const pluginsTab = (changed, style = false) => {
+    const cards = T.plugins.filter((p) => !p.core && !!p.style === style).map((p) => {
       const name = T.t(`plugins.${p.id}.name`);
       const opts = p.options?.length
         ? h('div', { class: 'tk-opts', hidden: !p.config.enabled }, p.options.map((o) => optionEl(p, o, changed)))
@@ -563,6 +863,17 @@
 
     // OBS overlay: local now-playing page for a Browser Source
     const overlayUrl = h('input', { class: 'tk-url', type: 'text', readonly: true, value: '' });
+    // The address the server reports, plus the chosen style (?layout=…), which is what gets copied.
+    let overlayBase = '';
+    const LAYOUTS = ['card', 'compact', 'text'];
+    const showUrl = () => {
+      const layout = layoutSelect.value;
+      overlayUrl.value = overlayBase && (layout === 'card' ? overlayBase : `${overlayBase}?layout=${layout}`);
+    };
+    const layoutSelect = h('select', { 'aria-label': T.t('ui.overlay.style'), onchange: () => {
+      T.save('__takaro', { overlayLayout: layoutSelect.value });
+      showUrl();
+    } }, LAYOUTS.map((l) => h('option', { value: l, selected: l === T.overlayLayout() }, T.t(`ui.overlay.styles.${l}`))));
     const overlayCopy = h('button', { class: 'tk-btn', type: 'button', onclick: async () => {
       try {
         await navigator.clipboard.writeText(overlayUrl.value);
@@ -602,6 +913,7 @@
     } }, T.t('ui.overlay.reset'));
     const overlayDetails = h('div', { class: 'tk-opts', hidden: !T.overlayEnabled() },
       h('div', { class: 'tk-field' }, overlayUrl, overlayCopy),
+      h('div', { class: 'tk-field' }, h('span', null, T.t('ui.overlay.style')), layoutSelect),
       h('div', { class: 'tk-field' }, h('span', null, T.t('ui.overlay.port')), portInput),
       h('div', { class: 'tk-field' }, h('span', null, T.t('ui.overlay.gradient')),
         h('div', { class: 'tk-actions', style: 'gap:8px' }, fromInput, preview, toInput, resetColors)),
@@ -610,8 +922,8 @@
     const applyOverlay = async (on) => {
       overlayDetails.hidden = !on;
       try {
-        const url = await T.invoke('set_overlay', T.overlayArgs(on));
-        overlayUrl.value = url;
+        overlayBase = await T.invoke('set_overlay', T.overlayArgs(on));
+        showUrl();
         overlayStatus.textContent = '';
       } catch (e) {
         overlayStatus.className = 'tk-status error';
@@ -651,7 +963,7 @@
 
   T.openSettings = () => {
     if (document.querySelector('.tk-overlay')) return;
-    const listed = () => T.plugins.filter((p) => !p.core);
+    const listed = () => T.plugins.filter((p) => !p.core && !p.style);
     const enabledCount = () => listed().filter((p) => p.config.enabled).length;
 
     dialog({
@@ -669,6 +981,7 @@
 
         const tabs = [
           ['plugins', T.t('ui.tabs.plugins'), pluginsTab, count],
+          ['style', T.t('ui.tabs.style'), (changed) => pluginsTab(changed, true)],
           ['extensions', T.t('ui.tabs.extensions'), extensionsTab],
           ['general', T.t('ui.tabs.general'), generalTab],
         ];
@@ -736,10 +1049,15 @@
       h('span', { class: 'tb-restore' }, winIcon(['path', { d: 'M2.5 2.5V.5h7v7h-2' }], ['rect', { x: '.5', y: '2.5', width: '7', height: '7' }])));
     const titlebar = h('div', { id: 'takaro-titlebar' },
       h('div', { class: 'tb-left' },
+        tbIcon('menu', ICONS.menu, () => T.$('ytmusic-nav-bar #guide-button')?.click()),
         tbIcon('back', ICONS.back, () => history.back()),
-        tbIcon('forward', ICONS.forward, () => history.forward()),
-        tbIcon('settings', ICONS.settings, () => T.openSettings(), 20)),
+        tbIcon('forward', ICONS.forward, () => history.forward())),
       h('div', { class: 'tb-drag' }),
+      h('div', { class: 'tb-settings' },
+        // History: YTM shows its own button only on some pages; Takaro's is always here.
+        tbIcon('history', ICONS.history, () => T.$('ytmusic-app')?.dispatchEvent(new CustomEvent('yt-navigate', {
+          bubbles: true, composed: true, detail: { endpoint: { browseEndpoint: { browseId: 'FEmusic_history' } } } })), 20),
+        tbIcon('settings', ICONS.settings, () => T.openSettings(), 20)),
       h('button', { class: 'tb-win', type: 'button', title: T.t('titlebar.minimize'), 'aria-label': T.t('titlebar.minimize'), onclick: win('minimize') },
         winIcon(['path', { d: 'M0 5.5h10' }])),
       maxBtn,
@@ -749,6 +1067,13 @@
     titlebar.lastChild.onclick = () => win(T.closeToTray() ? 'hide' : 'close')();
     // Empty areas drag the window; double-click maximizes/restores.
     titlebar.addEventListener('mousedown', (e) => {
+      // A click here never reaches YouTube Music (it starts a window drag), so close its open
+      // search box ourselves, as a click anywhere else would.
+      const search = T.$('ytmusic-search-box');
+      if (search?.hasAttribute('opened')) {
+        (search.polymerController || search).opened = false;
+        search.querySelector('input')?.blur();
+      }
       if (e.button !== 0 || e.target.closest('button')) return;
       win(e.detail === 2 ? 'toggle-maximize' : 'drag')();
     });
@@ -766,7 +1091,7 @@
 
     // ── Page scrollbar (below the title bar, above the player bar) ──
     {
-      const BAR = 40 / T.zoom(); // title bar height in page pixels
+      const BAR = 48 / T.zoom(); // top row height in page pixels
       const thumb = h('div');
       const track = h('div', { id: 'takaro-scroll', hidden: true }, thumb);
       let geo = null;

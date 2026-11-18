@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod adblock;
+mod clock;
 mod discord;
 // Windows-only features (WebView2 extensions and memory target, the portable exe's self-updater);
 // on macOS and Linux the same commands exist as stubs.
@@ -24,7 +25,6 @@ mod updater_unix_check;
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
 use std::sync::mpsc::{channel, Sender};
-use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::State;
 
 // ───────────── Configuration ─────────────
@@ -41,7 +41,7 @@ const DISCORD_CLIENT_ID: &str = match option_env!("DISCORD_CLIENT_ID") {
 };
 /// Link do segundo botão do card. Os textos do card vêm traduzidos do app
 /// (src/i18n/*.json → "presence"); estes são só o fallback em inglês.
-const SITE_URL: &str = "https://takaro.nxty.cc";
+const SITE_URL: &str = "https://takaro.im";
 const DEFAULT_LISTEN: &str = "Listen on YouTube Music";
 const DEFAULT_PAUSED: &str = "Paused";
 const DEFAULT_SITE: &str = "Get Takaro";
@@ -141,10 +141,9 @@ fn field(s: &str) -> String {
 }
 
 fn build_activity(t: &Track) -> Value {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0);
+    // Real time, not just this computer's clock: Discord shows other people the elapsed time from
+    // their own clocks (see clock.rs).
+    let now = clock::now_ms();
     let start = now - (t.position * 1000.0) as i64;
 
     // O Discord calcula a barra a partir do relógio, então não dá para "congelá-la":
@@ -229,7 +228,7 @@ fn playback_stopped(presence: State<Presence>, tray: State<tray::Tray>) {
 /// Opens one of Takaro's own links in the default browser.
 #[tauri::command]
 fn open_external(url: String) -> Result<(), String> {
-    const ALLOWED: [&str; 2] = ["https://takaro.nxty.cc", "https://github.com/2nxty/Takaro"];
+    const ALLOWED: [&str; 2] = ["https://takaro.im", "https://github.com/2nxty/Takaro"];
     if !ALLOWED.iter().any(|a| url == *a || url.starts_with(&format!("{a}/"))) {
         return Err("link not allowed".into());
     }
@@ -240,6 +239,7 @@ fn main() {
     let client_id = std::env::var("DISCORD_CLIENT_ID")
         .unwrap_or_else(|_| DISCORD_CLIENT_ID.to_string());
     let (tx, rx) = channel();
+    clock::start();
     std::thread::spawn(move || discord::run(client_id, rx));
 
     tauri::Builder::default()

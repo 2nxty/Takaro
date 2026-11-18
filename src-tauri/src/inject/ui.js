@@ -1022,7 +1022,7 @@
         ),
         h('p', { class: 'tk-desc', style: 'margin:12px 0' }, T.t('ui.tagline', { os: { macos: 'macOS', linux: 'Linux' }[T.platform] || 'Windows' })),
         h('div', { class: 'tk-buttons', style: 'gap:16px' },
-          link(T.t('ui.site'), 'https://takaro.nxty.cc'),
+          link(T.t('ui.site'), 'https://takaro.im'),
           link('GitHub', 'https://github.com/2nxty/Takaro'),
           link(T.t('ui.issues'), 'https://github.com/2nxty/Takaro/issues'))),
     ];

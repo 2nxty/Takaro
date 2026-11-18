@@ -1,11 +1,11 @@
 [package]
 name = "takaro"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2021"
 description = "Lightweight YouTube Music desktop player with Discord Rich Presence"
 license = "MIT"
 repository = "https://github.com/2nxty/Takaro"
-homepage = "https://takaro.nxty.cc"
+homepage = "https://takaro.im"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

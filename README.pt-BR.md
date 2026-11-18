@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://takaro.nxty.cc/#download"><b>Baixar</b></a> ·
+  <a href="https://takaro.im/#download"><b>Baixar</b></a> ·
   <a href="README.md">English</a>
 </p>
 
@@ -43,7 +43,7 @@ Ele é feito com [Tauri 2](https://tauri.app) e usa o motor web que o seu sistem
 
 ## Download
 
-Baixe pelo [site](https://takaro.nxty.cc/#download) (ele detecta o seu sistema) ou na [última versão](https://github.com/2nxty/Takaro/releases/latest):
+Baixe pelo [site](https://takaro.im/#download) (ele detecta o seu sistema) ou na [última versão](https://github.com/2nxty/Takaro/releases/latest):
 
 | Sistema | Arquivo | Como usar |
 |---|---|---|
@@ -54,6 +54,9 @@ Baixe pelo [site](https://takaro.nxty.cc/#download) (ele detecta o seu sistema) 
 | **Debian / Ubuntu** | [`Takaro-Linux.deb`](https://github.com/2nxty/Takaro/releases/latest/download/Takaro-Linux.deb) | `sudo apt install ./Takaro-Linux.deb` |
 
 O Discord desktop só é necessário para o Rich Presence.
+
+> [!WARNING]
+> **As versões de macOS e Linux são novas** (desde a 0.4.0) e ainda podem ter bugs: o Takaro nasceu no Windows, e esses sistemas usam outro motor web (WebKit). Se algo não funcionar, [abra uma issue](https://github.com/2nxty/Takaro/issues) dizendo qual sistema e versão você usa.
 
 > [!NOTE]
 > Os apps ainda não têm assinatura digital. **Windows:** o SmartScreen pode avisar na primeira vez; clique em **Mais informações → Executar assim mesmo**. **macOS:** o Gatekeeper bloqueia a primeira abertura; clique com o botão direito no Takaro → **Abrir**, ou rode `xattr -cr /Applications/Takaro.app`.

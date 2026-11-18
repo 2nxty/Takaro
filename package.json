@@ -1,7 +1,7 @@
 {
   "name": "takaro",
   "private": true,
-  "version": "0.3.1",
+  "version": "0.4.0",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
@@ -13,7 +13,7 @@
   },
   "description": "Lightweight YouTube Music desktop player with Discord Rich Presence",
   "license": "MIT",
-  "homepage": "https://takaro.nxty.cc",
+  "homepage": "https://takaro.im",
   "repository": {
     "type": "git",
     "url": "https://github.com/2nxty/Takaro.git"

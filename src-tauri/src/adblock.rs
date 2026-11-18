@@ -18,6 +18,7 @@ use serde_json::Value;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
+#[cfg(windows)]
 use std::process::Command;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager};
@@ -69,25 +70,51 @@ fn stale(cache: &Option<Cache>) -> bool {
 
 // ── Download ─────────────────────────────────────────────────────────
 
+/// Downloads a text file. Windows: its built-in curl.exe. macOS / Linux: ureq (curl isn't always
+/// installed there — Ubuntu doesn't ship it).
 pub(crate) fn fetch(url: &str) -> Result<String, String> {
     #[cfg(windows)]
-    let mut cmd = {
+    {
         use std::os::windows::process::CommandExt;
         let root = std::env::var("SystemRoot").unwrap_or_else(|_| r"C:\Windows".into());
-        let mut c = Command::new(std::path::Path::new(&root).join("System32").join("curl.exe"));
-        c.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
-        c
-    };
-    #[cfg(not(windows))]
-    let mut cmd = Command::new("curl");
-    let out = cmd
-        .args(["-fsSL", "--retry", "2", "--max-time", "60", "-A", "Takaro", url])
-        .output()
-        .map_err(|e| format!("curl: {e}"))?;
-    if !out.status.success() {
-        return Err(format!("{url}: {}", String::from_utf8_lossy(&out.stderr).trim()));
+        let out = Command::new(std::path::Path::new(&root).join("System32").join("curl.exe"))
+            .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+            .args(["-fsSL", "--retry", "2", "--max-time", "60", "-A", "Takaro", url])
+            .output()
+            .map_err(|e| format!("curl: {e}"))?;
+        if !out.status.success() {
+            return Err(format!("{url}: {}", String::from_utf8_lossy(&out.stderr).trim()));
+        }
+        Ok(String::from_utf8_lossy(&out.stdout).into_owned())
     }
-    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+    #[cfg(not(windows))]
+    {
+        fetch_http(url)
+    }
+}
+
+#[cfg(any(not(windows), test))]
+fn fetch_http(url: &str) -> Result<String, String> {
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(60)))
+        .user_agent("Takaro")
+        .build()
+        .into();
+    let mut last = String::new();
+    for _ in 0..3 {
+        match agent.get(url).call() {
+            Ok(mut resp) => {
+                return resp
+                    .body_mut()
+                    .with_config()
+                    .limit(32 * 1024 * 1024)
+                    .read_to_string()
+                    .map_err(|e| format!("{url}: {e}"));
+            }
+            Err(e) => last = format!("{url}: {e}"),
+        }
+    }
+    Err(last)
 }
 
 // ── Lists: !#if / !#include ──────────────────────────────────────────
@@ -376,8 +403,10 @@ fn update(app: &AppHandle) -> Result<Cache, String> {
 /// storage at that very moment, so turning it on/off only needs a page reload).
 fn guarded(script: &str) -> String {
     format!(
-        "if ((function () {{ try {{ return JSON.parse(localStorage.getItem(\"takaro:settings\") || \"{{}}\").adblock.enabled === true; }} \
-         catch (e) {{ return false; }} }})() && !window.__TAKARO_ADBLOCK__) {{\nwindow.__TAKARO_ADBLOCK__ = true;\n{script}}}\n"
+        // On unless turned off (it's on by default, so "never touched" = on).
+        "if ((function () {{ try {{ var s = JSON.parse(localStorage.getItem(\"takaro:settings\") || \"{{}}\"); \
+         return !(s.adblock && s.adblock.enabled === false); }} catch (e) {{ return true; }} }})() && !window.__TAKARO_ADBLOCK__) \
+         {{\nwindow.__TAKARO_ADBLOCK__ = true;\n{script}}}\n"
     )
 }
 
@@ -431,6 +460,14 @@ pub async fn set_adblock(app: AppHandle, enabled: bool) -> Result<Status, String
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[ignore] // network
+    fn http_download() {
+        let text = fetch_http("https://ublockorigin.github.io/uAssets/filters/quick-fixes.txt").unwrap();
+        assert!(text.contains("youtube"));
+        assert!(fetch_http("https://api.github.com/repos/2nxty/Takaro/releases/latest").unwrap().contains("tag_name"));
+    }
 
     #[test]
     fn domains() {

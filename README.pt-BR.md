@@ -58,7 +58,7 @@ O Discord desktop só é necessário para o Rich Presence.
 > [!NOTE]
 > Os apps ainda não têm assinatura digital. **Windows:** o SmartScreen pode avisar na primeira vez; clique em **Mais informações → Executar assim mesmo**. **macOS:** o Gatekeeper bloqueia a primeira abertura; clique com o botão direito no Takaro → **Abrir**, ou rode `xattr -cr /Applications/Takaro.app`.
 
-**Atualizações:** no Windows, o Takaro se atualiza sozinho (ele pergunta antes). No macOS e no Linux ele avisa quando sai uma versão nova e abre a página de download; instale por cima da antiga, seu login e suas configurações continuam.
+**Atualizações:** o Takaro verifica as versões novas e, depois de perguntar, se atualiza sozinho e reinicia: o `.exe` do Windows, o app do macOS e o AppImage do Linux. Com o `.deb` ele abre a página de download (instalar um pacote pede a sua senha). Seu login e suas configurações continuam.
 
 **Por enquanto só no Windows:** extensões de navegador (dependem do WebView2) e links `tak://`. Todo o resto (plugins, bloqueador de anúncios, letras, overlay para OBS, Discord) funciona nos três.
 

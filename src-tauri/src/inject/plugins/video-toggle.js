@@ -52,7 +52,7 @@
   T.register({
     id: 'video-toggle',
     style: true, // listed in the Style tab
-    defaults: { enabled: true, display: 'toggle', hideVideo: false },
+    defaults: { enabled: true, display: 'cover', hideVideo: false },
     options: [{ key: 'display', type: 'select', choices: MODES }],
 
     start(cfg) {
@@ -61,7 +61,7 @@
         cfg.display = cfg.forceHide ? 'hidden' : 'toggle';
         T.save('video-toggle', { display: cfg.display, forceHide: undefined, mode: undefined, align: undefined });
       }
-      if (!MODES.includes(cfg.display)) cfg.display = 'toggle';
+      if (!MODES.includes(cfg.display)) cfg.display = 'cover';
       T.css(CSS);
       document.body.classList.add(cfg.display === 'toggle' ? 'video-toggle-custom-mode' : `video-toggle-${cfg.display}`);
     },

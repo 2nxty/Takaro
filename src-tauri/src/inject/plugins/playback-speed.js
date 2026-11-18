@@ -48,6 +48,8 @@
       // source changes) — the API only accepts 0.25×–2×; outside that, the <video> alone is set.
       const apply = () => {
         const api = T.$('#movie_player');
+        // Ads are left alone (the ad blocker may be fast-forwarding one); the speed comes back after.
+        if (api?.classList.contains('ad-showing')) return;
         if (speed >= 0.25 && speed <= 2 && api?.getPlaybackRate?.() !== speed) {
           try {
             api.setPlaybackRate(speed);

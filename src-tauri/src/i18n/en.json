@@ -217,8 +217,10 @@
       "name": "Ad blocker",
       "description": "Removes YouTube Music's ads using uBlock Origin's filter lists (downloaded by the app and updated daily). Turn off if you have YouTube Premium.",
       "options": {
-        "trackers": "Block trackers (telemetry and ad tracking; your history keeps working)"
-      }
+        "trackers": "Block trackers (telemetry and ad tracking; your history keeps working)",
+        "autoSkip": "Skip ads automatically (when one still gets through)"
+      },
+      "skip": "Skip ad"
     }
   }
 }

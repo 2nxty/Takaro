@@ -14,6 +14,12 @@ mod tray;
 #[cfg_attr(not(windows), path = "stubs/updater.rs")]
 mod updater;
 mod window;
+// The macOS / Linux updater is otherwise only built there: compiled in Windows test builds too, so
+// mistakes show up on the development machine (no Mac/Linux toolchain here).
+#[cfg(all(test, windows))]
+#[path = "stubs/updater.rs"]
+#[allow(dead_code)]
+mod updater_unix_check;
 
 use serde::Deserialize;
 use serde_json::{json, Map, Value};

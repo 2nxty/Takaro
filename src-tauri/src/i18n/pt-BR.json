@@ -217,8 +217,10 @@
       "name": "Bloqueador de anúncios",
       "description": "Remove os anúncios do YouTube Music usando as listas de filtros do uBlock Origin (baixadas pelo app e atualizadas todo dia). Desnecessário com YouTube Premium.",
       "options": {
-        "trackers": "Bloquear rastreadores (telemetria e rastreio de anúncios; o histórico continua funcionando)"
-      }
+        "trackers": "Bloquear rastreadores (telemetria e rastreio de anúncios; o histórico continua funcionando)",
+        "autoSkip": "Pular anúncios automaticamente (quando algum ainda passar)"
+      },
+      "skip": "Pular anúncio"
     }
   }
 }

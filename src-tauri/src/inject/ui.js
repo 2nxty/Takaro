@@ -740,9 +740,11 @@
           } catch {}
           close();
         } }, T.t('update.skip'));
-        // macOS / Linux: no self-update (installed as an app / package); the release page opens.
+        // Windows exe, macOS app and Linux AppImage update themselves; otherwise (Linux .deb) the
+        // release page opens and the user installs it.
+        const auto = T.isWindows || info.auto === true;
         const now = h('button', { class: 'tk-btn tk-btn-primary', type: 'button', onclick: async () => {
-          if (!T.isWindows) {
+          if (!auto) {
             T.invoke('open_external', { url: info.url }).catch(report);
             return close();
           }
@@ -756,12 +758,12 @@
             status.textContent = T.t('update.failed', { error: String(e) });
             for (const b of [later, skip, now]) b.disabled = false;
           }
-        } }, T.t(T.isWindows ? 'update.now' : 'update.download'));
+        } }, T.t(auto ? 'update.now' : 'update.download'));
         return [
           h('div', { class: 'tk-head tk-update' }, logo(22), h('h2', null, T.t('update.title')),
             h('span', { class: 'tk-spacer' }), iconBtn('close', T.t('ui.close'), close)),
           h('div', { class: 'tk-body' },
-            h('p', { class: 'tk-lead', style: 'margin:0' }, T.t(T.isWindows ? 'update.body' : 'update.bodyManual', { latest: info.latest, current: info.current })),
+            h('p', { class: 'tk-lead', style: 'margin:0' }, T.t(auto ? 'update.body' : 'update.bodyManual', { latest: info.latest, current: info.current })),
             info.notes ? h('div', { class: 'tk-update-notes' }, plainNotes(info.notes)) : null),
           h('div', { class: 'tk-foot', style: 'flex-wrap:wrap;justify-content:flex-end' }, status, skip, later, now),
         ];

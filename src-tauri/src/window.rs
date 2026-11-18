@@ -18,7 +18,14 @@ pub fn ytm(app: &AppHandle) -> Option<WebviewWindow> {
 pub fn create(app: &mut App, inject: &str, start_url: Option<String>) -> tauri::Result<()> {
     app.manage(Shown(std::sync::atomic::AtomicBool::new(false)));
     let url = start_url.and_then(|u| u.parse().ok()).unwrap_or_else(|| "https://music.youtube.com/".parse().unwrap());
-    let window = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::External(url))
+    let builder = WebviewWindowBuilder::new(app, MAIN, WebviewUrl::External(url));
+    // macOS: WKWebView's own user agent has no "Safari" token, and YouTube Music answers it with
+    // "your browser isn't supported". Same engine as Safari, so it says it is Safari.
+    #[cfg(target_os = "macos")]
+    let builder = builder.user_agent(
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+    );
+    let window = builder
         .title("Takaro")
         .inner_size(1280.0, 820.0)
         .min_inner_size(800.0, 560.0)

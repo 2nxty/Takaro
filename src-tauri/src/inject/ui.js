@@ -16,8 +16,11 @@
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 0 221 72"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
         `<stop offset="0" stop-color="#ff3040"/><stop offset="1" stop-color="#781ec8"/></linearGradient></defs>` +
         `<circle cx="36" cy="36" r="34" fill="url(#g)"/><path d="M28 21v30l25-15z" fill="#fff"/>` +
-        `<text x="86" y="52" fill="#fff" font-family="'Segoe UI Variable Display','Segoe UI',Roboto,sans-serif" ` +
-        `font-size="46" font-weight="600" letter-spacing="-1">Takaro</text></svg>`,
+        // textLength: the word always spans the same width (the art is cropped to it), whatever
+        // font the system has (Segoe UI on Windows, SF Pro on macOS, Cantarell / Ubuntu on Linux).
+        `<text x="86" y="52" fill="#fff" font-family="'Segoe UI Variable Display','Segoe UI',-apple-system,'SF Pro Display',` +
+        `'Helvetica Neue',Ubuntu,Cantarell,Roboto,sans-serif" font-size="46" font-weight="600" letter-spacing="-1" ` +
+        `textLength="128" lengthAdjust="spacingAndGlyphs">Takaro</text></svg>`,
     );
   T.css(`
     html, body { background: #030303; }
@@ -85,6 +88,11 @@
     ytmusic-tabs#tabs { top: calc(48px / var(--tk-z, 1)) !important; }
     html.tk-sticky-tabs #nav-bar-background { height: calc(48px / var(--tk-z, 1)) !important;
       -webkit-mask-image: none; mask-image: none; }
+    /* Linux (WebKitGTK): backdrop-filter draws glows around bright things in the top row and is slow
+       in VMs; a plain darker tint there instead. */
+    html[data-tk-platform="linux"] #nav-bar-background { -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+      background: linear-gradient(to bottom, rgba(3, 3, 3, calc(.85 * var(--tk-sc, 0))), rgba(3, 3, 3, calc(.6 * var(--tk-sc, 0))) 60%,
+        rgba(3, 3, 3, 0)) !important; }
     html.tk-pp #nav-bar-background { -webkit-backdrop-filter: none; backdrop-filter: none; }
     #takaro-titlebar { position: fixed; top: 0; left: 0; right: 0; height: 48px; z-index: 4; display: flex; zoom: calc(1 / var(--tk-z, 1));
       align-items: stretch; color: #fff; user-select: none; -webkit-user-select: none; }
@@ -92,6 +100,9 @@
     #takaro-titlebar .tb-drag { flex: 1; }
     #takaro-titlebar .tb-settings { display: flex; align-items: center; gap: 2px; margin-right: 52px; }
     ytmusic-nav-bar .history-icon-button { display: none !important; } /* replaced by the title bar's */
+    /* Signed out: YTM's "Sign in" button and settings icon would sit under the title bar's buttons;
+       the side menu already has a "Sign in" button. */
+    ytmusic-nav-bar:not([user-logged-in]) .right-content > * { display: none !important; }
     #takaro-titlebar .tb-icon { width: 36px; height: 32px; border: 0; border-radius: 8px; padding: 0; background: transparent;
       color: inherit; display: grid; place-items: center; cursor: default; }
     #takaro-titlebar .tb-icon:hover { background: rgba(255,255,255,.1); }

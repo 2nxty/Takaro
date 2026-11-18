@@ -10,6 +10,12 @@
   /** 'windows' | 'macos' | 'linux' (set by the app). Browser extensions and self-updates are Windows-only. */
   T.platform = window.__TAKARO_PLATFORM__ || 'windows';
   T.isWindows = T.platform === 'windows';
+  // <html data-tk-platform="…"> for platform-specific CSS (the root may not exist yet at document-start).
+  {
+    const mark = () => document.documentElement?.setAttribute('data-tk-platform', T.platform);
+    mark();
+    document.addEventListener('readystatechange', mark, { once: true });
+  }
 
   let stored = {};
   try {

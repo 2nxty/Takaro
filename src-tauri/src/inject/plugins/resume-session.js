@@ -126,8 +126,10 @@
           const urlId = location.pathname === '/watch' && new URLSearchParams(location.search).get('v');
           const playing = api.getVideoData?.()?.video_id;
           const ad = T.$('#movie_player')?.classList.contains('ad-showing');
-          const loading = api.getPlayerState?.() === 3 || api.getPlayerState?.() === -1;
-          if (!urlId || !playing || ad || loading || restoring || urlId === playing) {
+          // Only while the old song is actually playing (state 1): a player that can't play at all
+          // (missing codecs, network) must not be reloaded over and over.
+          const playingNow = api.getPlayerState?.() === 1;
+          if (!urlId || !playing || ad || !playingNow || restoring || urlId === playing) {
             strikes = 0;
             return;
           }

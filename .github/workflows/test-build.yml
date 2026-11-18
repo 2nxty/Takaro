@@ -35,11 +35,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           version=$(node -p "require('./package.json').version")
-          tag="v${version}-test.${{ github.run_number }}"
-          gh release create "$tag" --draft --prerelease --target "${{ github.sha }}" \
-            --title "Takaro ${version} — test build ${{ github.run_number }}" \
-            --notes "Private test build from \`${{ github.ref_name }}\` (${GITHUB_SHA::7}). Not published."
-          id=$(gh api "repos/${{ github.repository }}/releases" --jq ".[] | select(.tag_name == \"$tag\") | .id")
+          # Next test number for this version: v0.3.1-test.1, -test.2, … (drafts included).
+          esc=$(printf '%s' "$version" | sed 's/[.]/[.]/g')
+          last=$(gh api --paginate "repos/${{ github.repository }}/releases" --jq ".[].tag_name" \
+            | sed -n "s/^v${esc}-test[.]\([0-9][0-9]*\)$/\1/p" | sort -n | tail -1)
+          n=$(( ${last:-0} + 1 ))
+          tag="v${version}-test.${n}"
+          # The id comes straight from the creation response: a freshly created draft can take a
+          # moment to show up in the releases list (that race left the builds with nowhere to upload).
+          id=$(gh api -X POST "repos/${{ github.repository }}/releases" \
+            -f tag_name="$tag" -f target_commitish="${{ github.sha }}" \
+            -f name="Takaro ${version} — test ${n}" \
+            -f body="Private test build from \`${{ github.ref_name }}\` (${GITHUB_SHA::7}). Not published." \
+            -F draft=true -F prerelease=true --jq .id)
+          if [ -z "$id" ]; then echo "::error::Could not create the draft release"; exit 1; fi
           echo "release_id=$id" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
@@ -72,6 +81,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev \
             libssl-dev libayatana-appindicator3-dev librsvg2-dev
+          # Audio/video codecs for WebKitGTK (YouTube Music streams AAC/Opus + H.264/VP9): bundled
+          # into the AppImage (bundleMediaFramework), declared as dependencies of the .deb.
+          sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+            gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools
 
       - uses: actions/setup-node@v4
         with:

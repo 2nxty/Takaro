@@ -7,6 +7,9 @@
 
   const STORAGE_KEY = 'takaro:settings';
   const T = (window.Takaro = { plugins: [], version: window.__TAKARO_VERSION__ || '0.0.0' });
+  /** 'windows' | 'macos' | 'linux' (set by the app). Browser extensions and self-updates are Windows-only. */
+  T.platform = window.__TAKARO_PLATFORM__ || 'windows';
+  T.isWindows = T.platform === 'windows';
 
   let stored = {};
   try {

@@ -7,14 +7,19 @@
 //! The protocol is registered for the current user (HKCU) on every start, pointing at this exe,
 //! so it keeps working if the portable exe is moved.
 
-use std::os::windows::process::CommandExt;
-use std::process::Command;
-
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const BASE: &str = "https://music.youtube.com";
 
+/// macOS / Linux: the protocol would be declared by the app bundle / .desktop file instead; not
+/// set up yet, so tak:// links only open Takaro on Windows for now.
+#[cfg(not(windows))]
+pub fn register() {}
+
 /// Registers tak:// for the current user (runs in the background, no admin needed).
+#[cfg(windows)]
 pub fn register() {
+    use std::os::windows::process::CommandExt;
+    use std::process::Command;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
     let Ok(exe) = std::env::current_exe() else { return };
     let exe = exe.display().to_string();
     std::thread::spawn(move || {

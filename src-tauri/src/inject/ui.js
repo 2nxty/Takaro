@@ -936,7 +936,8 @@
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.language')), langSelect)),
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.zoom')), zoomSelect)),
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.closeAction')), closeSelect)),
-      h('section', { class: 'tk-card' },
+      // (The self-updater replaces the Windows exe; other systems update by installing the new package.)
+      T.isWindows && h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
           h('div', null, h('div', { class: 'tk-name' }, T.t('update.title')), status),
           checkBtn)),
@@ -982,7 +983,7 @@
         const tabs = [
           ['plugins', T.t('ui.tabs.plugins'), pluginsTab, count],
           ['style', T.t('ui.tabs.style'), (changed) => pluginsTab(changed, true)],
-          ['extensions', T.t('ui.tabs.extensions'), extensionsTab],
+          ...(T.isWindows ? [['extensions', T.t('ui.tabs.extensions'), extensionsTab]] : []), // WebView2 only
           ['general', T.t('ui.tabs.general'), generalTab],
         ];
         const tabButtons = tabs.map(([id, label, render, extra]) =>
@@ -990,7 +991,7 @@
         const select = (id) => {
           lastTab = id;
           tabs.forEach(([tid], i) => tabButtons[i].setAttribute('aria-selected', String(tid === id)));
-          body.replaceChildren(...[tabs.find(([tid]) => tid === id)[2](changed)].flat());
+          body.replaceChildren(...[tabs.find(([tid]) => tid === id)[2](changed)].flat().filter(Boolean));
           body.scrollTop = 0;
         };
         select(lastTab);
@@ -1168,7 +1169,7 @@
         return false;
       }
     };
-    if (checked()) return;
+    if (checked() || !T.isWindows) return;
     (async () => {
       try {
         const info = await T.invoke('check_update'); // starts right away, in the background

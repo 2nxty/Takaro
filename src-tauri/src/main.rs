@@ -1,11 +1,16 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod discord;
+// Windows-only features (WebView2 extensions and memory target, the portable exe's self-updater);
+// on macOS and Linux the same commands exist as stubs.
+#[cfg_attr(not(windows), path = "stubs/extensions.rs")]
 mod extensions;
 mod links;
 mod overlay;
+#[cfg_attr(not(windows), path = "stubs/perf.rs")]
 mod perf;
 mod tray;
+#[cfg_attr(not(windows), path = "stubs/updater.rs")]
 mod updater;
 mod window;
 
@@ -220,13 +225,7 @@ fn open_external(url: String) -> Result<(), String> {
     if !ALLOWED.iter().any(|a| url == *a || url.starts_with(&format!("{a}/"))) {
         return Err("link not allowed".into());
     }
-    use std::os::windows::process::CommandExt;
-    std::process::Command::new("rundll32.exe")
-        .args(["url.dll,FileProtocolHandler", &url])
-        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
-        .spawn()
-        .map(|_| ())
-        .map_err(|e| e.to_string())
+    window::open_in_browser(&url).map_err(|e| e.to_string())
 }
 
 fn main() {

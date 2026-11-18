@@ -1,8 +1,8 @@
-//! Cliente mínimo do Discord RPC via named pipe (\\.\pipe\discord-ipc-N).
+//! Cliente mínimo do Discord RPC: named pipe no Windows (\\.\pipe\discord-ipc-N), socket Unix no
+//! macOS / Linux ($XDG_RUNTIME_DIR, $TMPDIR… /discord-ipc-N, incluindo Flatpak e Snap).
 //! Sem crates externas: permite usar campos novos (type 2, status_display_type).
 
 use serde_json::{json, Value};
-use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::thread::sleep;
@@ -21,8 +21,39 @@ const RETRY: Duration = Duration::from_secs(15);
 const OP_HANDSHAKE: u32 = 0;
 const OP_FRAME: u32 = 1;
 
+#[cfg(windows)]
+type Pipe = std::fs::File;
+#[cfg(unix)]
+type Pipe = std::os::unix::net::UnixStream;
+
+#[cfg(windows)]
+fn open_pipe(i: u32) -> io::Result<Pipe> {
+    std::fs::OpenOptions::new().read(true).write(true).open(format!(r"\\.\pipe\discord-ipc-{i}"))
+}
+
+#[cfg(unix)]
+fn open_pipe(i: u32) -> io::Result<Pipe> {
+    let mut last = io::Error::new(io::ErrorKind::NotFound, "no Discord socket");
+    let bases: Vec<String> = ["XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP"]
+        .iter()
+        .filter_map(|k| std::env::var(k).ok())
+        .chain(std::iter::once("/tmp".to_string()))
+        .collect();
+    for base in &bases {
+        // Regular install, Flatpak and Snap.
+        for sub in ["", "app/com.discordapp.Discord/", "snap.discord/"] {
+            let path = std::path::Path::new(base).join(format!("{sub}discord-ipc-{i}"));
+            match Pipe::connect(&path) {
+                Ok(p) => return Ok(p),
+                Err(e) => last = e,
+            }
+        }
+    }
+    Err(last)
+}
+
 struct Ipc {
-    pipe: File,
+    pipe: Pipe,
     nonce: u64,
 }
 
@@ -34,8 +65,7 @@ impl Ipc {
     fn connect(client_id: &str) -> io::Result<Self> {
         let mut last_err = err("nenhum pipe do Discord encontrado".into());
         for i in 0..10 {
-            let path = format!(r"\\.\pipe\discord-ipc-{i}");
-            match OpenOptions::new().read(true).write(true).open(&path) {
+            match open_pipe(i) {
                 Ok(pipe) => {
                     let mut ipc = Ipc { pipe, nonce: 0 };
                     ipc.write(OP_HANDSHAKE, &json!({ "v": 1, "client_id": client_id }))?;

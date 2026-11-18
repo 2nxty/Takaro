@@ -1,0 +1,109 @@
+name: Test build
+
+# Private test builds for Windows, macOS and Linux.
+#
+# Runs on every push to a `test/**` branch, or by hand (Actions → Test build → Run workflow).
+# The installers go to a DRAFT release: drafts are only visible to people with write access to
+# the repository, never to the public, and they don't create a tag until published. The
+# self-updater ignores them too (it only looks at the latest published release).
+# Delete the draft (Releases → the draft → Delete) when you're done testing.
+
+on:
+  push:
+    branches: ['test/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: test-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create.outputs.release_id }}
+      tag: ${{ steps.create.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the draft release
+        id: create
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="v${version}-test.${{ github.run_number }}"
+          gh release create "$tag" --draft --prerelease --target "${{ github.sha }}" \
+            --title "Takaro ${version} — test build ${{ github.run_number }}" \
+            --notes "Private test build from \`${{ github.ref_name }}\` (${GITHUB_SHA::7}). Not published."
+          id=$(gh api "repos/${{ github.repository }}/releases" --jq ".[] | select(.tag_name == \"$tag\") | .id")
+          echo "release_id=$id" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: draft
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            args: --bundles nsis
+          # The test VMs are x86_64 (VMware on a Windows host): macOS is built for Intel, even on
+          # the ARM runner.
+          - name: macOS (Intel)
+            os: macos-latest
+            target: x86_64-apple-darwin
+            args: --target x86_64-apple-darwin --bundles app,dmg
+          - name: Linux
+            os: ubuntu-22.04
+            args: --bundles appimage,deb
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux system packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev \
+            libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.target }}
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Discord application ID, compiled in (repository secret DISCORD_CLIENT_ID).
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+        with:
+          releaseId: ${{ needs.draft.outputs.release_id }}
+          args: ${{ matrix.args }}
+
+      # The portable exe too (what the public release ships), next to the installer.
+      - name: Portable Windows exe
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          Copy-Item src-tauri/target/release/takaro.exe Takaro.exe
+          gh release upload "${{ needs.draft.outputs.tag }}" Takaro.exe --clobber

@@ -28,18 +28,19 @@ pub fn create(app: &mut App, inject: &str, start_url: Option<String>) -> tauri::
         // Same as YouTube Music's background: no white flash while the page loads.
         .background_color(Color(3, 3, 3, 255))
         .browser_extensions_enabled(true)
-        .initialization_script(inject)
+        // The page knows which system it runs on (windows / macos / linux): some features are Windows-only.
+        .initialization_script(&format!("window.__TAKARO_PLATFORM__ = {:?};\n{inject}", std::env::consts::OS))
         // Links that leave YouTube Music (Google account, terms, help…) open in the default browser.
         .on_navigation(|url| {
             if in_app(url) {
                 return true;
             }
-            open_in_browser(url.as_str());
+            let _ = open_in_browser(url.as_str());
             false
         })
         .on_new_window(|url, _features| {
             if matches!(url.scheme(), "http" | "https") {
-                open_in_browser(url.as_str());
+                let _ = open_in_browser(url.as_str());
                 return tauri::webview::NewWindowResponse::Deny;
             }
             tauri::webview::NewWindowResponse::Allow
@@ -86,12 +87,24 @@ fn in_app(url: &tauri::Url) -> bool {
 }
 
 /// Opens a web page in the default browser.
-pub fn open_in_browser(url: &str) {
-    use std::os::windows::process::CommandExt;
-    let _ = std::process::Command::new("rundll32.exe")
-        .args(["url.dll,FileProtocolHandler", url])
-        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
-        .spawn();
+pub fn open_in_browser(url: &str) -> std::io::Result<()> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        std::process::Command::new("rundll32.exe")
+            .args(["url.dll,FileProtocolHandler", url])
+            .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+            .spawn()
+            .map(|_| ())
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open").arg(url).spawn().map(|_| ())
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        std::process::Command::new("xdg-open").arg(url).spawn().map(|_| ())
+    }
 }
 
 /// Set once the window has been shown at startup (so the safety net doesn't re-show a window

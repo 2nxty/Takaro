@@ -104,7 +104,8 @@
     #takaro-titlebar .tb-guest { display: none; position: absolute; right: 150px; top: 11px; width: 26px; height: 26px;
       padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
     #takaro-titlebar .tb-guest svg { width: 26px; height: 26px; display: block; }
-    #takaro-titlebar .tb-guest:hover { filter: brightness(1.15); }
+    /* (No filter here: WebKit makes a filtered element vanish inside the zoomed title bar.) */
+    #takaro-titlebar .tb-guest:hover { box-shadow: 0 0 0 2px rgba(255, 255, 255, .25); }
     html.tk-signed-out #takaro-titlebar .tb-guest { display: block; }
     ytmusic-nav-bar .history-icon-button { display: none !important; } /* replaced by the title bar's */
     /* Signed out: YTM's "Sign in" button and settings icon would sit under the title bar's buttons;

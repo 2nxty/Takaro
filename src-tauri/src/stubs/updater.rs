@@ -194,7 +194,27 @@ fn install_dmg(url: &str, bundle: &Path) -> Result<(), String> {
 /// Starts `target` a moment after this process exits (single instance: the new one must not find
 /// the old one still running). `$0` carries the path, so no quoting issues.
 fn relaunch(script: &str, target: &Path) -> Result<(), String> {
-    Command::new("sh").arg("-c").arg(script).arg(target).spawn().map(|_| ()).map_err(|e| e.to_string())
+    // Waits for this process to be really gone (a fixed delay wasn't enough on slow machines: the
+    // new instance found the old one still running and handed over to it), then runs `script`.
+    // `$0` = the target, `$1` = this process's id.
+    let full = format!("while kill -0 \"$1\" 2>/dev/null; do sleep 0.2; done; sleep 0.3; {script}");
+    let mut cmd = Command::new("sh");
+    cmd.arg("-c").arg(full).arg(target).arg(std::process::id().to_string());
+    // Not tied to the closing app (its own process group, no inherited terminal I/O) and without
+    // the old AppImage's environment, which points into its mount that's about to disappear.
+    for var in ["APPDIR", "APPIMAGE", "ARGV0", "OWD", "LD_LIBRARY_PATH", "GST_PLUGIN_SYSTEM_PATH", "GST_PLUGIN_SYSTEM_PATH_1_0",
+        "GST_PLUGIN_PATH", "GST_PLUGIN_PATH_1_0", "GST_PLUGIN_SCANNER", "GST_PLUGIN_SCANNER_1_0", "GIO_MODULE_DIR",
+        "GDK_PIXBUF_MODULE_FILE", "GTK_PATH", "GTK_EXE_PREFIX", "GTK_DATA_PREFIX"]
+    {
+        cmd.env_remove(var);
+    }
+    cmd.stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
+    cmd.spawn().map(|_| ()).map_err(|e| e.to_string())
 }
 
 #[cfg_attr(not(all(test, windows)), tauri::command)] // (plain functions in the Windows compile check)
@@ -206,12 +226,12 @@ pub async fn install_update(app: AppHandle, url: String) -> Result<(), String> {
         let bundle = app_bundle().ok_or("Takaro isn't running from an app bundle")?;
         let b = bundle.clone();
         tauri::async_runtime::spawn_blocking(move || install_dmg(&url, &b)).await.map_err(|e| e.to_string())??;
-        relaunch("sleep 1; open \"$0\"", &bundle)?;
+        relaunch("open \"$0\"", &bundle)?;
     } else {
         let current = appimage().ok_or("Takaro isn't running as an AppImage")?;
         let c = current.clone();
         tauri::async_runtime::spawn_blocking(move || install_appimage(&url, &c)).await.map_err(|e| e.to_string())??;
-        relaunch("sleep 1; exec \"$0\"", &current)?;
+        relaunch("exec \"$0\"", &current)?;
     }
     app.exit(0);
     Ok(())

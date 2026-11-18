@@ -218,6 +218,8 @@ h2 { font-size: 36px; line-height: 1.11; font-weight: 500; letter-spacing: -.5px
   background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; }
 
 .cta { padding: 56px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+/* The download menu opens past the card's edge: don't clip it (cards clip by default). */
+.frame.cta { overflow: visible; position: relative; z-index: 2; }
 .cta p { color: var(--fog); max-width: 520px; }
 .cta .btn { margin-top: 8px; }
 .cta-meta { font-size: 13px; color: var(--ash) !important; }

@@ -20,6 +20,9 @@ const RETRY: Duration = Duration::from_secs(15);
 
 const OP_HANDSHAKE: u32 = 0;
 const OP_FRAME: u32 = 1;
+const OP_CLOSE: u32 = 2;
+const OP_PING: u32 = 3;
+const OP_PONG: u32 = 4;
 
 #[cfg(windows)]
 type Pipe = std::fs::File;
@@ -44,7 +47,14 @@ fn open_pipe(i: u32) -> io::Result<Pipe> {
         for sub in ["", "app/com.discordapp.Discord/", "snap.discord/"] {
             let path = std::path::Path::new(base).join(format!("{sub}discord-ipc-{i}"));
             match Pipe::connect(&path) {
-                Ok(p) => return Ok(p),
+                Ok(p) => {
+                    // Never wait forever on a Discord that stopped answering (seen on macOS: the
+                    // presence froze on the first song): the call fails, the connection is dropped
+                    // and a new one is made.
+                    p.set_read_timeout(Some(Duration::from_secs(10)))?;
+                    p.set_write_timeout(Some(Duration::from_secs(5)))?;
+                    return Ok(p);
+                }
                 Err(e) => last = e,
             }
         }
@@ -111,15 +121,25 @@ impl Ipc {
                 "nonce": self.nonce.to_string(),
             }),
         )?;
-        let (op, resp) = self.read()?;
-        if op != OP_FRAME {
-            return Err(err(format!("conexão encerrada pelo Discord: {resp}")));
+        // A resposta é a que tem o nosso nonce. No caminho podem vir PINGs (respondidos com PONG)
+        // e eventos/respostas atrasadas (ignorados); CLOSE encerra.
+        let nonce = self.nonce.to_string();
+        for _ in 0..8 {
+            let (op, resp) = self.read()?;
+            match op {
+                OP_PING => self.write(OP_PONG, &resp)?,
+                OP_CLOSE => return Err(err(format!("conexão encerrada pelo Discord: {resp}"))),
+                OP_FRAME if resp["nonce"].as_str() == Some(nonce.as_str()) => {
+                    if resp["evt"] == "ERROR" {
+                        // Payload inválido: registra, mas mantém a conexão.
+                        eprintln!("[discord] SET_ACTIVITY rejeitado: {}", resp["data"]);
+                    }
+                    return Ok(());
+                }
+                _ => {}
+            }
         }
-        if resp["evt"] == "ERROR" {
-            // Payload inválido: registra, mas mantém a conexão.
-            eprintln!("[discord] SET_ACTIVITY rejeitado: {}", resp["data"]);
-        }
-        Ok(())
+        Err(err("sem resposta do Discord".into()))
     }
 }
 

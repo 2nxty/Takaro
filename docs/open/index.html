@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open in Takaro</title>
+  <meta name="robots" content="noindex">
+  <meta name="description" content="Open this song in Takaro, or listen on YouTube Music.">
+  <link rel="icon" type="image/svg+xml" href="../icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* "Open in Takaro" page (takaro.im/open/?v=<videoId>[&list=<playlistId>]), like open.spotify.com:
+       it tries to open the song in the app (tak://) and offers YouTube Music for everyone else. */
+    .open { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; }
+    .open-card { width: min(420px, 100%); padding: 32px 24px; text-align: center; display: flex; flex-direction: column;
+      align-items: center; gap: 14px; }
+    .open-cover { width: 200px; height: 200px; border-radius: 12px; object-fit: cover; background: var(--surface);
+      box-shadow: rgba(0, 0, 0, .5) 0 12px 32px; }
+    .open-cover[hidden] { display: none; }
+    .open h1 { font-size: 26px; line-height: 1.2; letter-spacing: -.3px; margin-top: 6px; }
+    .open p { color: var(--fog); font-size: 14px; max-width: 340px; }
+    .open .btn { width: 100%; }
+    .open-small { font-size: 13px; color: var(--ash) !important; }
+    .open-small a { color: var(--link); }
+  </style>
+</head>
+<body>
+  <main class="open">
+    <div class="frame open-card">
+      <a class="brand" href="../"><img src="../icon.svg" alt="" width="24" height="24"><span>Takaro</span></a>
+      <img class="open-cover" id="cover" alt="" width="200" height="200" hidden>
+      <h1 id="title">Opening in Takaro…</h1>
+      <p id="text">If Takaro didn't open, pick an option below.</p>
+      <a class="btn btn-primary" id="app" href="#">Open in Takaro</a>
+      <a class="btn btn-secondary" id="ytm" href="https://music.youtube.com/">Listen on YouTube Music</a>
+      <p class="open-small"><span id="noapp">Don't have Takaro?</span> <a id="get" href="../#download">Get it free</a></p>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const TEXT = {
+        en: { title: 'Opening in Takaro…', text: "If Takaro didn't open, pick an option below.", app: 'Open in Takaro',
+          ytm: 'Listen on YouTube Music', noapp: "Don't have Takaro?", get: 'Get it free', bad: 'This link has no song.' },
+        pt: { title: 'Abrindo no Takaro…', text: 'Se o Takaro não abriu, escolha uma opção abaixo.', app: 'Abrir no Takaro',
+          ytm: 'Ouvir no YouTube Music', noapp: 'Não tem o Takaro?', get: 'Baixe grátis', bad: 'Este link não tem uma música.' },
+        es: { title: 'Abriendo en Takaro…', text: 'Si Takaro no se abrió, elige una opción abajo.', app: 'Abrir en Takaro',
+          ytm: 'Escuchar en YouTube Music', noapp: '¿No tienes Takaro?', get: 'Descárgalo gratis', bad: 'Este enlace no tiene una canción.' },
+      };
+      const lang = (navigator.languages || [navigator.language || 'en']).map((l) => l.slice(0, 2).toLowerCase()).find((l) => TEXT[l]) || 'en';
+      const t = TEXT[lang];
+      document.documentElement.lang = lang;
+      for (const id of ['title', 'text', 'app', 'ytm', 'noapp', 'get']) document.getElementById(id).textContent = t[id];
+      document.title = t.app;
+
+      // Only YouTube ids (letters, digits, - and _): anything else is ignored.
+      const q = new URLSearchParams(location.search);
+      const valid = (s) => !!s && /^[\w-]{1,64}$/.test(s);
+      const v = q.get('v');
+      const list = q.get('list');
+      if (!valid(v)) {
+        document.getElementById('title').textContent = t.bad;
+        document.getElementById('text').hidden = true;
+        document.getElementById('app').hidden = true;
+        return;
+      }
+      const keepList = valid(list) && !list.startsWith('RD'); // radio/mix ids don't open a song
+      const tak = `tak://watch/${v}${keepList ? `/${list}` : ''}`;
+      const ytm = `https://music.youtube.com/watch?v=${v}${keepList ? `&list=${list}` : ''}`;
+      document.getElementById('app').href = tak;
+      document.getElementById('ytm').href = ytm;
+      const cover = document.getElementById('cover');
+      cover.src = `https://i.ytimg.com/vi/${v}/hqdefault.jpg`;
+      cover.onload = () => (cover.hidden = false);
+
+      // Try the app right away (Chromium-based browsers and Safari ask "Open Takaro?" or open it;
+      // when Takaro isn't installed nothing happens and the buttons stay). Firefox replaces the page
+      // with an error for unknown links, so there it waits for the button.
+      if (!/firefox/i.test(navigator.userAgent)) setTimeout(() => (location.href = tak), 300);
+    })();
+  </script>
+</body>
+</html>

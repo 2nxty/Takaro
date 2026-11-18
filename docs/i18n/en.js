@@ -37,7 +37,7 @@ TakaroI18n.add("en", "English", {
     "caption": "Optional: show what you’re playing on your Discord profile. This is how your friends see it.",
     "listening": "Listening to",
     "paused": "Paused",
-    "listenButton": "Listen on YouTube Music",
+    "listenButton": "Listen on Takaro",
     "memberStatus": "Listening to",
     "tabPlaying": "Playing",
     "tabPaused": "Paused"

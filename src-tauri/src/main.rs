@@ -42,7 +42,7 @@ const DISCORD_CLIENT_ID: &str = match option_env!("DISCORD_CLIENT_ID") {
 /// Link do segundo botão do card. Os textos do card vêm traduzidos do app
 /// (src/i18n/*.json → "presence"); estes são só o fallback em inglês.
 const SITE_URL: &str = "https://takaro.im";
-const DEFAULT_LISTEN: &str = "Listen on YouTube Music";
+const DEFAULT_LISTEN: &str = "Listen on Takaro";
 const DEFAULT_PAUSED: &str = "Paused";
 const DEFAULT_SITE: &str = "Get Takaro";
 /// O que aparece depois de "Ouvindo" na lista de membros:
@@ -140,6 +140,16 @@ fn field(s: &str) -> String {
     out
 }
 
+/// The card's "Listen" link: Takaro's open page for valid YouTube ids, YouTube Music otherwise.
+fn open_link(video_id: &str) -> String {
+    let id_ok = !video_id.is_empty() && video_id.len() <= 64 && video_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
+    if id_ok {
+        format!("{SITE_URL}/open/?v={video_id}")
+    } else {
+        "https://music.youtube.com/".to_string()
+    }
+}
+
 fn build_activity(t: &Track) -> Value {
     // Real time, not just this computer's clock: Discord shows other people the elapsed time from
     // their own clocks (see clock.rs).
@@ -189,7 +199,9 @@ fn build_activity(t: &Track) -> Value {
     if !t.video_id.is_empty() {
         buttons.push(json!({
             "label": button_label(label(&t.labels.listen, DEFAULT_LISTEN)),
-            "url": format!("https://music.youtube.com/watch?v={}", t.video_id),
+            // takaro.im/open: opens the song in Takaro (tak://) if the viewer has it, else offers
+            // YouTube Music — like Spotify's open.spotify.com links.
+            "url": open_link(&t.video_id),
         }));
     }
     buttons.push(json!({ "label": button_label(label(&t.labels.get_takaro, DEFAULT_SITE)), "url": SITE_URL }));
@@ -245,11 +257,9 @@ fn main() {
     tauri::Builder::default()
         // Opening Takaro again just brings the running window to the front.
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
-            // A tak:// link opened while Takaro runs: go there in the running window.
-            if let (Some(url), Some(page)) = (links::from_args(args), window::ytm(app)) {
-                if let Ok(url) = url.parse() {
-                    let _ = page.navigate(url);
-                }
+            // A tak:// link opened while Takaro runs (Windows / Linux pass it as an argument).
+            if let Some(url) = links::from_args(args) {
+                go_to(app, &url);
             }
             tray::show_main(app);
         }))
@@ -284,6 +294,27 @@ fn main() {
             window::create(app, &inject, links::from_args(std::env::args()))?;
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("erro ao iniciar o Takaro");
+        .build(tauri::generate_context!())
+        .expect("erro ao iniciar o Takaro")
+        .run(|app, event| {
+            // macOS delivers tak:// links as an "open URLs" event (not as arguments), whether
+            // Takaro was running or was just started by the link.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = &event {
+                for link in urls {
+                    if let Some(url) = links::to_url(link.as_str()) {
+                        go_to(app, &url);
+                        tray::show_main(app);
+                    }
+                }
+            }
+            let _ = (app, event);
+        });
+}
+
+/// Opens a music.youtube.com address (from a tak:// link) in the main window.
+fn go_to(app: &tauri::AppHandle, url: &str) {
+    if let (Some(page), Ok(url)) = (window::ytm(app), url.parse()) {
+        let _ = page.navigate(url);
+    }
 }

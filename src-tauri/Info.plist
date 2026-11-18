@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Merged into the macOS app's Info.plist (tauri.conf.json → bundle → macOS → infoPlist):
+     tak:// links open Takaro. -->
+<plist version="1.0">
+<dict>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>Takaro link</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>tak</string>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>

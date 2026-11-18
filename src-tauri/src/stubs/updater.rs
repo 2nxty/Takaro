@@ -181,6 +181,15 @@ fn install_dmg(url: &str, bundle: &Path) -> Result<(), String> {
         }
         let _ = std::fs::remove_dir_all(&old);
         let _ = Command::new("xattr").arg("-dr").arg("com.apple.quarantine").arg(bundle).output();
+        // Tell macOS the app changed, or it may keep the old bundle's cached icons (the app showed
+        // up without them until it was reopened).
+        let _ = Command::new("touch").arg(bundle).output();
+        let _ = Command::new(
+            "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister",
+        )
+        .arg("-f")
+        .arg(bundle)
+        .output();
         Ok(())
     })();
 

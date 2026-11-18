@@ -36,6 +36,9 @@
           "gstreamer1.0-libav"
         ]
       }
+    },
+    "macOS": {
+      "infoPlist": "Info.plist"
     }
   }
 }

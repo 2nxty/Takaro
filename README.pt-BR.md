@@ -63,7 +63,7 @@ O Discord desktop só é necessário para o Rich Presence.
 
 **Atualizações:** o Takaro verifica as versões novas e, depois de perguntar, se atualiza sozinho e reinicia: o `.exe` do Windows, o app do macOS e o AppImage do Linux. Com o `.deb` ele abre a página de download (instalar um pacote pede a sua senha). Seu login e suas configurações continuam.
 
-**Por enquanto só no Windows:** extensões de navegador (dependem do WebView2) e links `tak://`. Todo o resto (plugins, bloqueador de anúncios, letras, overlay para OBS, Discord) funciona nos três.
+**Por enquanto só no Windows:** extensões de navegador (dependem do WebView2). Todo o resto (plugins, bloqueador de anúncios, letras, links `tak://`, overlay para OBS, Discord) funciona nos três.
 
 ## Plugins
 
@@ -95,7 +95,13 @@ Abra a aba **Letra** do player. O Takaro procura a música primeiro no [Better L
 
 ## Links do Takaro (tak://)
 
-No Windows, toda vez que abre, o Takaro registra o protocolo `tak://` para o seu usuário (sem precisar de administrador). Abrir um link `tak://` — pelo navegador, por um chat ou pelo **Win + R** — abre no Takaro; se ele já estiver aberto, a janela atual vai até lá.
+Abrir um link `tak://` — pelo navegador, por um chat ou pelo **Win + R** — abre no Takaro; se ele já estiver aberto, a janela atual vai até lá. O registro não precisa de administrador:
+
+- **Windows:** registrado para o seu usuário toda vez que o Takaro abre.
+- **macOS:** declarado pelo próprio app.
+- **Linux:** um arquivo `.desktop` do seu usuário, definido como o app padrão para `tak://`, toda vez que o Takaro abre. No AppImage ele também é a entrada do app no menu, com ícone.
+
+O botão **Ouvir no Takaro** do cartão do Discord leva a `takaro.im/open/?v=<id>`, que abre a música no Takaro se você tiver o app e oferece o YouTube Music se não tiver.
 
 | Link | Abre |
 |---|---|

@@ -37,7 +37,7 @@ TakaroI18n.add("pt-BR", "Português (Brasil)", {
     "caption": "Opcional: mostre no seu perfil do Discord o que está tocando. É assim que seus amigos veem.",
     "listening": "Ouvindo",
     "paused": "Pausado",
-    "listenButton": "Ouvir no YouTube Music",
+    "listenButton": "Ouvir no Takaro",
     "memberStatus": "Ouvindo",
     "tabPlaying": "Tocando",
     "tabPaused": "Pausado"

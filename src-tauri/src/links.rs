@@ -4,15 +4,94 @@
 //!   tak://music.youtube.com/<path>            (swap https:// for tak:// on a music.youtube.com URL)
 //!   tak://www.youtube.com/watch?v=…  tak://youtu.be/<id>   (opened as YouTube Music)
 //!
-//! The protocol is registered for the current user (HKCU) on every start, pointing at this exe,
-//! so it keeps working if the portable exe is moved.
+//! Registration:
+//!   Windows — for the current user (HKCU) on every start, pointing at this exe, so it keeps
+//!             working if the portable exe is moved.
+//!   macOS   — declared by the app bundle (src-tauri/Info.plist); links arrive as an "open URLs"
+//!             event (see main.rs).
+//!   Linux   — a .desktop file for the current user with `x-scheme-handler/tak`, made the default
+//!             handler, on every start. For the AppImage it's also its app-menu entry (with icon),
+//!             so the AppImage shows up like an installed app.
 
 const BASE: &str = "https://music.youtube.com";
 
-/// macOS / Linux: the protocol would be declared by the app bundle / .desktop file instead; not
-/// set up yet, so tak:// links only open Takaro on Windows for now.
-#[cfg(not(windows))]
+/// macOS: declared by the app bundle (Info.plist), nothing to do at run time.
+#[cfg(target_os = "macos")]
 pub fn register() {}
+
+/// Linux: registers tak:// for the current user (in the background).
+#[cfg(target_os = "linux")]
+pub fn register() {
+    std::thread::spawn(|| {
+        if let Err(e) = register_linux() {
+            eprintln!("[links] couldn't register tak://: {e}");
+        }
+    });
+}
+
+/// Exec= value: a quoted path (Desktop Entry spec: \ " ` $ are escaped inside quotes).
+#[cfg(any(target_os = "linux", test))]
+fn exec_quote(path: &str) -> String {
+    let mut out = String::from('"');
+    for c in path.chars() {
+        if matches!(c, '"' | '`' | '$' | '\\') {
+            out.push('\\');
+        }
+        out.push(c);
+    }
+    out.push('"');
+    out
+}
+
+/// The .desktop file: a visible app entry (AppImage) or a hidden link handler (.deb, which already
+/// has its own menu entry).
+#[cfg(any(target_os = "linux", test))]
+fn desktop_entry(exe: &str, visible: bool) -> String {
+    let mut s = String::from("[Desktop Entry]\nType=Application\nName=Takaro\nComment=YouTube Music player\n");
+    s += &format!("Exec={} %u\n", exec_quote(exe));
+    s += "Icon=takaro\nTerminal=false\nCategories=AudioVideo;Audio;Player;\nMimeType=x-scheme-handler/tak;\n";
+    if !visible {
+        s += "NoDisplay=true\n";
+    }
+    s
+}
+
+#[cfg(any(target_os = "linux", test))] // (also built in tests, so it's compile-checked on Windows)
+#[allow(dead_code)]
+fn register_linux() -> std::io::Result<()> {
+    use std::path::PathBuf;
+    use std::process::Command;
+    let data = std::env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))
+        .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "no home folder"))?;
+    let apps = data.join("applications");
+    std::fs::create_dir_all(&apps)?;
+    // Writes only when something changed (this runs on every start).
+    let write = |path: PathBuf, bytes: &[u8]| -> std::io::Result<()> {
+        if std::fs::read(&path).ok().as_deref() != Some(bytes) {
+            std::fs::write(&path, bytes)?;
+        }
+        Ok(())
+    };
+    let name = match std::env::var("APPIMAGE").ok().filter(|p| !p.is_empty()) {
+        Some(appimage) => {
+            let icons = data.join("icons/hicolor/128x128/apps");
+            std::fs::create_dir_all(&icons)?;
+            write(icons.join("takaro.png"), include_bytes!("../icons/128x128.png"))?;
+            write(apps.join("takaro.desktop"), desktop_entry(&appimage, true).as_bytes())?;
+            "takaro.desktop"
+        }
+        None => {
+            let exe = std::env::current_exe()?;
+            write(apps.join("takaro-links.desktop"), desktop_entry(&exe.to_string_lossy(), false).as_bytes())?;
+            "takaro-links.desktop"
+        }
+    };
+    let _ = Command::new("xdg-mime").args(["default", name, "x-scheme-handler/tak"]).output();
+    let _ = Command::new("update-desktop-database").arg(&apps).output();
+    Ok(())
+}
 
 /// Registers tak:// for the current user (runs in the background, no admin needed).
 #[cfg(windows)]
@@ -100,6 +179,18 @@ pub fn from_args<I: IntoIterator<Item = String>>(args: I) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::to_url;
+
+    #[test]
+    fn linux_desktop_file() {
+        use super::{desktop_entry, exec_quote};
+        assert_eq!(exec_quote("/opt/My Apps/Takaro.AppImage"), r#""/opt/My Apps/Takaro.AppImage""#);
+        assert_eq!(exec_quote(r#"/x/$a"b"#), r#""/x/\$a\"b""#);
+        let visible = desktop_entry("/home/u/Takaro.AppImage", true);
+        assert!(visible.contains("Exec=\"/home/u/Takaro.AppImage\" %u\n"));
+        assert!(visible.contains("MimeType=x-scheme-handler/tak;"));
+        assert!(!visible.contains("NoDisplay"));
+        assert!(desktop_entry("/usr/bin/takaro", false).contains("NoDisplay=true"));
+    }
 
     #[test]
     fn parses_links() {

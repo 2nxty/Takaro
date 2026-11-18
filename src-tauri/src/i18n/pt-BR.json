@@ -19,7 +19,7 @@
     "reloadNeeded": "Recarregue para aplicar as mudanças.",
     "reloadNow": "Recarregar",
     "version": "Versão {version}",
-    "tagline": "Um player de YouTube Music leve para Windows.",
+    "tagline": "Um player de YouTube Music leve para {os}.",
     "site": "Site",
     "issues": "Relatar um problema",
     "closeAction": "Botão fechar (X)",
@@ -62,7 +62,8 @@
     "restore": "Restaurar",
     "close": "Fechar",
     "menu": "Menu",
-    "history": "Histórico"
+    "history": "Histórico",
+    "signIn": "Fazer login"
   },
   "update": {
     "title": "Atualizações",
@@ -75,7 +76,9 @@
     "check": "Verificar atualizações",
     "checking": "Verificando…",
     "upToDate": "Você está na versão mais recente.",
-    "checkFailed": "Não foi possível verificar atualizações."
+    "checkFailed": "Não foi possível verificar atualizações.",
+    "bodyManual": "O Takaro {latest} está disponível. Você tem a {current}. Baixe e instale por cima desta versão.",
+    "download": "Baixar"
   },
   "extensions": {
     "title": "Extensões",
@@ -209,6 +212,13 @@
     "performance": {
       "name": "Otimizações de desempenho",
       "description": "Reduz o uso de CPU do YouTube Music (CPU Tamer). Desligue se algo se comportar mal."
+    },
+    "adblock": {
+      "name": "Bloqueador de anúncios",
+      "description": "Remove os anúncios do YouTube Music usando as listas de filtros do uBlock Origin (baixadas pelo app e atualizadas todo dia). Desnecessário com YouTube Premium.",
+      "options": {
+        "trackers": "Bloquear rastreadores (telemetria e rastreio de anúncios; o histórico continua funcionando)"
+      }
     }
   }
 }

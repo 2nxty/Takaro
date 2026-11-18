@@ -18,6 +18,7 @@
     "allow-set-zoom",
     "allow-set-overlay",
     "allow-check-update",
-    "allow-install-update"
+    "allow-install-update",
+    "allow-set-adblock"
   ]
 }

@@ -27,6 +27,7 @@ fn main() {
                 "set_overlay",
                 "check_update",
                 "install_update",
+                "set_adblock",
             ]),
         ),
     )

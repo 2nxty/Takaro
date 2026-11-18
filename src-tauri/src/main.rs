@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod adblock;
 mod discord;
 // Windows-only features (WebView2 extensions and memory target, the portable exe's self-updater);
 // on macOS and Linux the same commands exist as stubs.
@@ -55,6 +56,7 @@ const INJECT: &str = concat!(
     include_str!("inject/core.js"), "\n",
     include_str!("inject/vendor/cpu-tamer.js"), "\n",
     include_str!("inject/plugins/sponsorblock.js"), "\n",
+    include_str!("inject/plugins/adblock.js"), "\n",
     include_str!("inject/plugins/skip-disliked-songs.js"), "\n",
     include_str!("inject/plugins/disable-autoplay.js"), "\n",
     include_str!("inject/plugins/resume-session.js"), "\n",
@@ -264,12 +266,16 @@ fn main() {
             extensions::open_store,
             extensions::open_extension_options,
             extensions::reload_main,
+            adblock::set_adblock,
         ])
         .setup(|app| {
             updater::cleanup();
             tray::setup(app.handle())?;
             links::register();
-            window::create(app, INJECT, links::from_args(std::env::args()))?;
+            // The ad blocker (when on) runs before everything else, so it sees YouTube Music's first
+            // player response too.
+            let inject = format!("{}{INJECT}", adblock::init_script(app.handle()));
+            window::create(app, &inject, links::from_args(std::env::args()))?;
             Ok(())
         })
         .run(tauri::generate_context!())

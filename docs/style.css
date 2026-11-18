@@ -99,6 +99,26 @@ h1, h2, h3, p { margin: 0; }
 }
 .btn-secondary:hover { background: #2f2f2f; }
 
+/* Download: main button for the detected system + a menu with every download */
+.dl { position: relative; display: inline-flex; }
+.dl .dl-main { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dl .dl-toggle { padding-left: 10px; padding-right: 10px; border-top-left-radius: 0; border-bottom-left-radius: 0;
+  border-left: 1px solid rgba(0, 0, 0, .14); }
+.dl .dl-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.dl-icon { display: inline-flex; }
+.dl-icon svg { width: 16px; height: 16px; display: block; }
+.dl-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; min-width: 100%; padding: 6px;
+  background: var(--surface); border: 1px solid var(--edge); border-radius: var(--r-card);
+  box-shadow: rgba(0, 0, 0, .45) 0 12px 32px; text-align: left; }
+.dl-menu[hidden] { display: none; }
+.dl-menu a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 6px; color: var(--text);
+  font-size: 14px; line-height: 20px; text-decoration: none; white-space: nowrap; }
+.dl-menu a:hover, .dl-menu a:focus-visible { background: var(--edge); outline: none; }
+.dl-menu a[aria-current="true"] { color: #fff; font-weight: 500; }
+.dl-menu a svg { width: 16px; height: 16px; flex: none; color: var(--fog); }
+.cta .dl .btn { margin-top: 0; }
+.cta .dl { margin-top: 8px; }
+
 /* Hero */
 .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; padding-top: 64px; padding-bottom: 72px; }
 h1 { font-size: 60px; line-height: 60px; font-weight: 500; letter-spacing: -1.5px; }

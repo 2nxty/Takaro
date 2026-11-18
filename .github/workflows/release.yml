@@ -1,6 +1,10 @@
 name: Release
 
-# Builds the portable Takaro.exe. Push a tag like v0.1.0 to publish a GitHub Release.
+# Builds Takaro for Windows (portable exe + installer), macOS (universal .dmg: Intel + Apple Silicon) and Linux
+# (.AppImage + .deb), each on its own native runner. Push a tag like v0.1.0 to publish a GitHub
+# Release with all of them. The files keep fixed names (Takaro.exe, Takaro-Setup.exe, Takaro-macOS.dmg,
+# Takaro-Linux.AppImage, Takaro-Linux.deb) so "releases/latest/download/<name>" always works —
+# the site's download buttons and the Windows self-updater rely on that.
 on:
   push:
     tags: ['v*']
@@ -28,23 +32,118 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build:portable
+      # One build gives both: the portable exe (target/release/takaro.exe) and the installer.
+      - run: npm run tauri -- build --bundles nsis
         env:
-          # Discord application ID, compiled into the exe. Add it in
+          # Discord application ID, compiled into the app. Add it in
           # Settings → Secrets and variables → Actions → New repository secret.
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
 
-      - name: Prepare artifact
+      - name: Prepare artifacts
         shell: pwsh
-        run: Copy-Item src-tauri/target/release/takaro.exe Takaro.exe
+        run: |
+          Copy-Item src-tauri/target/release/takaro.exe Takaro.exe
+          Copy-Item (Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1).FullName Takaro-Setup.exe
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Takaro
-          path: Takaro.exe
+          name: windows
+          path: |
+            Takaro.exe
+            Takaro-Setup.exe
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - run: npm run tauri -- build --target universal-apple-darwin --bundles dmg
+        env:
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+
+      - name: Prepare artifact
+        run: cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg Takaro-macOS.dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: Takaro-macOS.dmg
+
+  linux:
+    # The oldest supported Ubuntu: AppImages built here run on newer distributions too.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev \
+            libssl-dev libayatana-appindicator3-dev librsvg2-dev
+          # Audio/video codecs for WebKitGTK: bundled into the AppImage, required by the .deb.
+          sudo apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
+            gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - run: npm run tauri -- build --bundles appimage,deb
+        env:
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+
+      - name: Prepare artifacts
+        run: |
+          cp src-tauri/target/release/bundle/appimage/*.AppImage Takaro-Linux.AppImage
+          cp src-tauri/target/release/bundle/deb/*.deb Takaro-Linux.deb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            Takaro-Linux.AppImage
+            Takaro-Linux.deb
+
+  # One job publishes everything, so the builds never race to create the release.
+  publish:
+    needs: [windows, macos, linux]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
 
       - uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: Takaro.exe
+          files: |
+            Takaro.exe
+            Takaro-Setup.exe
+            Takaro-macOS.dmg
+            Takaro-Linux.AppImage
+            Takaro-Linux.deb
           generate_release_notes: true

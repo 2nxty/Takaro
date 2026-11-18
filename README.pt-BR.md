@@ -5,12 +5,12 @@
 <h1 align="center">Takaro</h1>
 
 <p align="center">
-  Um player de YouTube Music para Windows, leve e rápido.<br>
+  Um player de YouTube Music para Windows, macOS e Linux, leve e rápido.<br>
   Sem Electron. Cerca de 5 MB.
 </p>
 
 <p align="center">
-  <a href="https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe"><b>Baixar</b></a> ·
+  <a href="https://takaro.nxty.cc/#download"><b>Baixar</b></a> ·
   <a href="README.md">English</a>
 </p>
 
@@ -20,11 +20,12 @@
 
 O Takaro é um player desktop para o **YouTube Music**: o player web oficial numa janela nativa e leve, com um visual mais caprichado, a capa da música como fundo, letras sincronizadas, plugins inclusos, ícone na bandeja e mais. Ele também pode mostrar o que você está ouvindo no Discord, no OBS ou como um link `tak://`.
 
-Ele é feito com [Tauri 2](https://tauri.app) e usa o runtime **Microsoft Edge WebView2**, que já vem no Windows 10/11, então não carrega um Chromium embutido. O app inteiro é um único `.exe` portable de ~5 MB.
+Ele é feito com [Tauri 2](https://tauri.app) e usa o motor web que o seu sistema já tem (**WebView2** no Windows, **WebKit** no macOS e no Linux), então não carrega um Chromium embutido. O app inteiro tem cerca de 5 MB.
 
 ## Recursos
 
-- **Leve**: Tauri + WebView2, sem Electron. Um único `.exe` portable de ~5 MB, sem instalador.
+- **Leve**: Tauri + o motor web do sistema, sem Electron. Cerca de 5 MB: um `.exe` portable ou um instalador no Windows, um `.dmg` no macOS, um AppImage ou `.deb` no Linux.
+- **Bloqueador de anúncios**: opcional, com as próprias listas de filtros do uBlock Origin, em todos os sistemas.
 - **Seu YouTube Music de verdade**: entre com sua conta e tenha playlists, curtidas, mixes, uploads, tudo.
 - **Player caprichado**: janela sem moldura com barra de título própria, a capa da música atual como fundo atrás do player (com desfoque opcional, efeito vidro), barra de progresso em gradiente e menus mais limpos.
 - **Letras sincronizadas**: letras sincronizadas do Better Lyrics e do LRCLIB na aba Letra; clique numa linha para ir até ela.
@@ -42,16 +43,24 @@ Ele é feito com [Tauri 2](https://tauri.app) e usa o runtime **Microsoft Edge W
 
 ## Download
 
-Baixe o **`Takaro.exe`** na [última versão](https://github.com/2nxty/Takaro/releases/latest) e execute. Pronto.
+Baixe pelo [site](https://takaro.nxty.cc/#download) (ele detecta o seu sistema) ou na [última versão](https://github.com/2nxty/Takaro/releases/latest):
 
-**Requisitos**
+| Sistema | Arquivo | Como usar |
+|---|---|---|
+| **Windows** 10 / 11 (x64) | [`Takaro.exe`](https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe) | Portable: é só executar. Precisa do WebView2 Runtime, que já vem no Windows 11 e no Windows 10 atualizado ([baixe](https://developer.microsoft.com/microsoft-edge/webview2/) se faltar). |
+| **Windows** (instalador) | [`Takaro-Setup.exe`](https://github.com/2nxty/Takaro/releases/latest/download/Takaro-Setup.exe) | Instala para o seu usuário (sem administrador), com atalho no menu Iniciar e desinstalador; baixa o WebView2 se faltar. É o mesmo app, e também se atualiza sozinho. |
+| **macOS** 11+ (Intel e Apple Silicon) | [`Takaro-macOS.dmg`](https://github.com/2nxty/Takaro/releases/latest/download/Takaro-macOS.dmg) | Abra o `.dmg` e arraste o Takaro para Aplicativos. |
+| **Linux** (64 bits) | [`Takaro-Linux.AppImage`](https://github.com/2nxty/Takaro/releases/latest/download/Takaro-Linux.AppImage) | `chmod +x Takaro-Linux.AppImage` e execute. Funciona na maioria das distribuições. |
+| **Debian / Ubuntu** | [`Takaro-Linux.deb`](https://github.com/2nxty/Takaro/releases/latest/download/Takaro-Linux.deb) | `sudo apt install ./Takaro-Linux.deb` |
 
-- Windows 10 ou 11 (x64)
-- Microsoft Edge WebView2 Runtime: já vem no Windows 11 e no Windows 10 atualizado. Se faltar, baixe na [Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
-- Discord desktop (só se quiser o Rich Presence)
+O Discord desktop só é necessário para o Rich Presence.
 
 > [!NOTE]
-> O `.exe` ainda não tem assinatura digital, então o SmartScreen do Windows pode avisar na primeira vez. Clique em **Mais informações → Executar assim mesmo**.
+> Os apps ainda não têm assinatura digital. **Windows:** o SmartScreen pode avisar na primeira vez; clique em **Mais informações → Executar assim mesmo**. **macOS:** o Gatekeeper bloqueia a primeira abertura; clique com o botão direito no Takaro → **Abrir**, ou rode `xattr -cr /Applications/Takaro.app`.
+
+**Atualizações:** no Windows, o Takaro se atualiza sozinho (ele pergunta antes). No macOS e no Linux ele avisa quando sai uma versão nova e abre a página de download; instale por cima da antiga, seu login e suas configurações continuam.
+
+**Por enquanto só no Windows:** extensões de navegador (dependem do WebView2) e links `tak://`. Todo o resto (plugins, bloqueador de anúncios, letras, overlay para OBS, Discord) funciona nos três.
 
 ## Plugins
 
@@ -60,6 +69,7 @@ Clique no botão **Configurações do Takaro** (ícone de sliders) na barra supe
 | Plugin | O que faz | Opções |
 |---|---|---|
 | **SponsorBlock** | Pula intros, encerramentos e trechos sem música em clipes, usando a base do [SponsorBlock](https://sponsor.ajay.app). | Categorias |
+| **Bloqueador de anúncios** | Remove os anúncios do YouTube Music com as listas do uBlock Origin (baixadas pelo app e atualizadas todo dia). Desligado por padrão. | — |
 | **Pular músicas com dislike** | Vai para a próxima faixa quando você dá "não gostei". | — |
 | **Desativar autoplay** | Faz as músicas começarem pausadas. | Só na primeira música ao abrir o app (padrão) |
 | **Retomar última sessão** | Ao abrir o app, volta para a música, playlist ou mix que você estava ouvindo, no mesmo ponto. Playlists, álbuns, mixes e rádios voltam com a fila; uma fila montada à mão com "Adicionar à fila" só traz de volta a música atual. | Continuar de onde a música parou, começar pausado |
@@ -82,7 +92,7 @@ Abra a aba **Letra** do player. O Takaro procura a música primeiro no [Better L
 
 ## Links do Takaro (tak://)
 
-Toda vez que abre, o Takaro registra o protocolo `tak://` para o seu usuário do Windows (sem precisar de administrador). Abrir um link `tak://` — pelo navegador, por um chat ou pelo **Win + R** — abre no Takaro; se ele já estiver aberto, a janela atual vai até lá.
+No Windows, toda vez que abre, o Takaro registra o protocolo `tak://` para o seu usuário (sem precisar de administrador). Abrir um link `tak://` — pelo navegador, por um chat ou pelo **Win + R** — abre no Takaro; se ele já estiver aberto, a janela atual vai até lá.
 
 | Link | Abre |
 |---|---|
@@ -124,7 +134,7 @@ Observações:
 
 ## Extensões
 
-O Takaro carrega extensões de navegador pelo WebView2.
+No Windows, o Takaro carrega extensões de navegador pelo WebView2. (O macOS e o Linux usam o WebKit, que não roda extensões do Chrome; o plugin **Bloqueador de anúncios** cobre o uso mais comum.)
 
 1. Abra **Configurações do Takaro → Extensões** e clique em **Chrome Web Store** ou **Edge Add-ons**. A loja abre numa nova janela.
 2. Abra a página de uma extensão. Uma caixa **Instalar no Takaro** aparece no canto inferior direito (se ela já estiver instalada, a caixa oferece **Atualizar**). Os botões da própria loja ("Usar no Chrome" / "Obter") ficam escondidos, porque só funcionam no Chrome/Edge; os botões de voltar/avançar ficam no canto inferior esquerdo.
@@ -274,7 +284,9 @@ As configurações do usuário (plugins, idioma) ficam no `localStorage` da pág
    git push origin v0.1.0
    ```
 
-3. O workflow **Release** compila o `Takaro.exe` no Windows e o anexa a uma nova GitHub Release. Os botões de download do site apontam para `releases/latest/download/Takaro.exe`, então se atualizam sozinhos.
+3. O workflow **Release** compila cada sistema no seu próprio runner (`Takaro.exe` e `Takaro-Setup.exe` no Windows, `Takaro-macOS.dmg` universal para Intel e Apple Silicon, `Takaro-Linux.AppImage` e `Takaro-Linux.deb`) e os anexa a uma nova GitHub Release. Os nomes dos arquivos nunca mudam, então os botões de download do site (`releases/latest/download/<arquivo>`) e o atualizador do Windows sempre pegam a versão mais nova.
+
+**Builds de teste privadas:** envie para um branch `test/…` (ou rode **Actions → Test build**). Os instaladores dos três sistemas vão para um *rascunho* de release, visível só para quem tem acesso de escrita.
 
 **Site:** nas configurações do repositório, ative **Pages → Deploy from a branch → `main` / `docs`**. Para usar um domínio próprio, coloque-o em `docs/CNAME` e crie um registro DNS `CNAME` apontando para `<usuário>.github.io`.
 
@@ -284,13 +296,13 @@ As configurações do usuário (plugins, idioma) ficam no `localStorage` da pág
 Confira se o Discord *desktop* está aberto (a versão do navegador não tem IPC) e se **Configurações de usuário → Privacidade de atividades → Compartilhar minha atividade** está ligado. O Takaro reconecta em até 15 segundos depois que o Discord abre.
 
 **Onde ficam meus dados e como resetar tudo?**
-Feche o Takaro e apague `%LOCALAPPDATA%\com.takaro.player`. Isso desconecta sua conta e reseta todas as configurações.
+Feche o Takaro e apague a pasta de dados dele: `%LOCALAPPDATA%\com.takaro.player` no Windows, `~/Library/WebKit/com.takaro.player` e `~/Library/Application Support/com.takaro.player` no macOS, `~/.local/share/com.takaro.player` no Linux. Isso desconecta sua conta e reseta todas as configurações.
 
 **Ele bloqueia anúncios?**
-Não sozinho; durante um anúncio, o card do Discord mantém a música anterior. Você pode instalar uma extensão bloqueadora pelas lojas (veja [Extensões](#extensões)).
+Ligue o plugin **Bloqueador de anúncios** (desligado por padrão). Ele usa as listas de filtros do uBlock Origin, baixadas pelo app e atualizadas todo dia, e funciona em todos os sistemas. Com YouTube Premium, não é necessário.
 
-**macOS / Linux?**
-Ainda não: o cliente do Discord usa named pipes do Windows. Contribuições são bem-vindas.
+**Linux: "este formato de vídeo não é suportado" / nada toca.**
+O WebKit toca mídia pelo GStreamer. O AppImage já traz o seu; com o `.deb` (ou se ainda falhar), instale os codecs: `sudo apt install gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav`.
 
 ## Créditos
 
@@ -299,6 +311,7 @@ Ainda não: o cliente do Discord usa named pipes do Windows. Contribuições sã
 - [CPU Tamer](https://github.com/cyfung1031/userscript-supports), de CY Fung (MIT).
 - Letras do [Better Lyrics](https://better-lyrics.boidu.dev) e do [LRCLIB](https://lrclib.net).
 - [SponsorBlock](https://sponsor.ajay.app) pela base de segmentos.
+- Regras do bloqueador de anúncios das listas do [uBlock Origin](https://github.com/uBlockOrigin/uAssets), executadas com os [AdGuard Scriptlets](https://github.com/AdguardTeam/Scriptlets) (ambos GPL-3.0, baixados pelo app, não embutidos).
 - [Tauri](https://tauri.app) pelo framework.
 
 ## Licença

@@ -46,3 +46,16 @@ ytmdesktop2 além desse script foi copiado.
 
 As letras vêm das APIs públicas do [Better Lyrics](https://better-lyrics.boidu.dev) e do
 [LRCLIB](https://lrclib.net).
+
+---
+
+O **bloqueador de anúncios** (`src-tauri/src/adblock.rs`, plugin desligado por padrão) não inclui
+código nem listas de terceiros no executável: quando ligado, o app **baixa** em tempo de execução
+
+- as listas de filtros do [uBlock Origin](https://github.com/uBlockOrigin/uAssets) (uBlock filters,
+  quick fixes e unbreak), licença GPL-3.0;
+- a biblioteca de scriptlets do [AdGuard](https://github.com/AdguardTeam/Scriptlets)
+  (`@adguard/scriptlets`), licença GPL-3.0.
+
+Elas ficam só no cache local do usuário e não são redistribuídas com o Takaro.
+

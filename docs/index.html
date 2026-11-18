@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Takaro — a tiny YouTube Music player for Windows</title>
-  <meta name="description" content="A fast, lightweight YouTube Music player for Windows. No Electron, about 5 MB.">
+  <title>Takaro — a tiny YouTube Music player for Windows, macOS and Linux</title>
+  <meta name="description" content="A fast, lightweight YouTube Music player for Windows, macOS and Linux. No Electron, about 5 MB.">
   <meta name="theme-color" content="#0a0a0a">
   <meta property="og:title" content="Takaro">
-  <meta property="og:description" content="A tiny YouTube Music player for Windows. No Electron, about 5 MB.">
+  <meta property="og:description" content="A tiny YouTube Music player for Windows, macOS and Linux. No Electron, about 5 MB.">
   <meta property="og:url" content="https://takaro.nxty.cc/">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,10 +56,16 @@
         <h1 data-i18n="hero.title">YouTube Music on your desktop.</h1>
         <p class="lead" data-i18n="hero.subtitle">A fast, lightweight player for the real YouTube Music. Simple, clean and made for your desktop.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M3 5.5 10.4 4.5v7H3v-6Zm0 13 7.4 1v-7H3v6Zm8.2 1.1L21 21v-8.5h-9.8v7.1Zm0-15.2v7.1H21V3l-9.8 1.4Z"/></svg>
-            <span data-i18n="hero.download">Download for Windows</span>
-          </a>
+          <div class="dl" data-dl data-dl-label="hero.download">
+            <a class="btn btn-primary dl-main" href="https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe">
+              <span class="dl-icon" aria-hidden="true"></span><span class="dl-label">Download for Windows</span>
+            </a>
+            <button class="btn btn-primary dl-toggle" type="button" aria-haspopup="menu" aria-expanded="false"
+              aria-label="Other downloads" title="Other downloads" data-i18n-attr="aria-label:hero.other;title:hero.other">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            <div class="dl-menu" role="menu" hidden></div>
+          </div>
           <a class="btn btn-secondary" href="https://github.com/2nxty/Takaro" data-i18n="hero.github">View on GitHub</a>
         </div>
         <ul class="meta">
@@ -241,9 +247,18 @@
         <img src="icon.svg" alt="" width="56" height="56">
         <h2 id="download-title" data-i18n="download.title">Get Takaro</h2>
         <p data-i18n="download.text">One portable .exe. No installer, no account besides your own YouTube one.</p>
-        <a class="btn btn-primary" href="https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe" data-i18n="download.button">Download for Windows</a>
-        <p class="cta-meta" data-i18n="download.meta">Windows 10 or 11 · x64 · requires Microsoft Edge WebView2 (already included in Windows)</p>
-        <p class="cta-note" data-i18n="download.smartscreen">The .exe isn't code-signed yet, so Windows SmartScreen may warn you. Click "More info" → "Run anyway".</p>
+        <div class="dl" data-dl data-dl-label="download.button">
+            <a class="btn btn-primary dl-main" href="https://github.com/2nxty/Takaro/releases/latest/download/Takaro.exe">
+              <span class="dl-icon" aria-hidden="true"></span><span class="dl-label">Download for Windows</span>
+            </a>
+            <button class="btn btn-primary dl-toggle" type="button" aria-haspopup="menu" aria-expanded="false"
+              aria-label="Other downloads" title="Other downloads" data-i18n-attr="aria-label:hero.other;title:hero.other">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            <div class="dl-menu" role="menu" hidden></div>
+          </div>
+        <p class="cta-meta" data-dl-meta>Windows 10 or 11 · x64 · requires Microsoft Edge WebView2 (already included in Windows)</p>
+        <p class="cta-note" data-dl-note>The .exe isn't code-signed yet, so Windows SmartScreen may warn you. Click "More info" → "Run anyway".</p>
       </div>
     </section>
 

@@ -1,8 +1,8 @@
 // Português (Brasil) — copy this file to add a language, then add a <script> line in index.html.
 TakaroI18n.add("pt-BR", "Português (Brasil)", {
   "meta": {
-    "title": "Takaro — um player de YouTube Music leve para Windows",
-    "description": "Um player de YouTube Music rápido e leve para Windows. Sem Electron, cerca de 5 MB."
+    "title": "Takaro — um player de YouTube Music leve para Windows, macOS e Linux",
+    "description": "Um player de YouTube Music rápido e leve para Windows, macOS e Linux. Sem Electron, cerca de 5 MB."
   },
   "announce": {
     "text": "O Takaro é open source, com licença MIT.",
@@ -20,11 +20,12 @@ TakaroI18n.add("pt-BR", "Português (Brasil)", {
   "hero": {
     "title": "O YouTube Music no seu desktop.",
     "subtitle": "Um player rápido e leve para o YouTube Music de verdade. Simples, bonito e feito para o seu desktop.",
-    "download": "Baixar para Windows",
+    "download": "Baixar para {os}",
     "github": "Ver no GitHub",
-    "meta1": ".exe portable de ~5 MB",
+    "meta1": "~5 MB · Windows, macOS, Linux",
     "meta2": "Sem Electron",
-    "meta3": "Grátis e open source"
+    "meta3": "Grátis e open source",
+    "other": "Outros downloads"
   },
   "shot": {
     "label": "O player",
@@ -50,7 +51,7 @@ TakaroI18n.add("pt-BR", "Português (Brasil)", {
     },
     "light": {
       "title": "Leve de verdade",
-      "text": "Feito com Tauri e o WebView2 que já vem no Windows. Sem Chromium embutido, sem Electron."
+      "text": "Feito com Tauri e o motor web do próprio sistema (WebView2 no Windows, WebKit no macOS e no Linux). Sem Chromium embutido, sem Electron."
     },
     "account": {
       "title": "Sua conta, sua biblioteca",
@@ -120,10 +121,20 @@ TakaroI18n.add("pt-BR", "Português (Brasil)", {
   },
   "download": {
     "title": "Baixe o Takaro",
-    "text": "Um único .exe portable. Sem instalador e sem conta além da sua do YouTube.",
-    "button": "Baixar para Windows",
+    "text": "Pequeno e nativo: um .exe portable ou um instalador no Windows, um .dmg no macOS, um AppImage ou .deb no Linux. Sem conta além da sua do YouTube.",
+    "button": "Baixar para {os}",
     "meta": "Windows 10 ou 11 · x64 · requer o Microsoft Edge WebView2 (já incluso no Windows)",
-    "smartscreen": "O .exe ainda não tem assinatura digital, então o SmartScreen do Windows pode avisar. Clique em \"Mais informações\" → \"Executar assim mesmo\"."
+    "smartscreen": "O .exe ainda não tem assinatura digital, então o SmartScreen do Windows pode avisar. Clique em \"Mais informações\" → \"Executar assim mesmo\".",
+    "metaWindows": "Windows 10 ou 11 · x64 · requer o Microsoft Edge WebView2 (já incluso no Windows)",
+    "metaMac": "macOS 11 ou mais recente · Intel e Apple Silicon",
+    "metaLinux": "64 bits · o AppImage roda na maioria das distribuições; o .deb é para Debian e Ubuntu",
+    "noteMac": "O app ainda não é assinado pela Apple, então o macOS bloqueia a primeira abertura: clique com o botão direito no Takaro → Abrir (ou rode xattr -cr /Applications/Takaro.app).",
+    "noteLinux": "AppImage: torne executável (chmod +x Takaro-Linux.AppImage) e abra. .deb: sudo apt install ./Takaro-Linux.deb",
+    "optWindows": "Windows · .exe portable",
+    "optWindowsSetup": "Windows · instalador (Setup)",
+    "optMac": "macOS · .dmg (Intel e Apple Silicon)",
+    "optAppImage": "Linux · AppImage",
+    "optDeb": "Linux · .deb (Debian, Ubuntu)"
   },
   "faq": {
     "title": "Dúvidas",
@@ -132,14 +143,14 @@ TakaroI18n.add("pt-BR", "Português (Brasil)", {
     "q2": "Preciso do Discord?",
     "a2": "Não. O Takaro é antes de tudo um player de música; o Discord só é necessário para o card de Rich Presence, que conecta sozinho quando o Discord abre.",
     "q3": "Onde ficam meus dados?",
-    "a3": "Seu login do YouTube e suas configurações ficam no seu computador, no perfil do WebView2 em %LOCALAPPDATA%\\com.takaro.player. O Takaro não tem servidor e não coleta nada.",
+    "a3": "Seu login do YouTube e suas configurações ficam no seu computador, na pasta de dados do Takaro (com.takaro.player). O Takaro não tem servidor e não coleta nada.",
     "q4": "Funciona no macOS ou no Linux?",
-    "a4": "Ainda não. Por enquanto o Takaro é só para Windows. Contribuições são bem-vindas.",
+    "a4": "Sim. O Takaro roda no Windows, no macOS (Intel e Apple Silicon) e no Linux. Extensões de navegador só funcionam no Windows; o bloqueador de anúncios embutido funciona nos três.",
     "q5": "Como adiciono uma tradução?",
     "a5": "Copie um dos arquivos de tradução, traduza os valores e abra um pull request. O README explica onde ficam os arquivos, tanto do app quanto deste site."
   },
   "footer": {
-    "tagline": "Um player de YouTube Music leve para Windows.",
+    "tagline": "Um player de YouTube Music leve para Windows, macOS e Linux.",
     "releases": "Versões",
     "issues": "Relatar um problema",
     "disclaimer": "Licença MIT. YouTube Music é marca registrada da Google LLC e Discord é marca registrada da Discord Inc. O Takaro não tem ligação com nenhuma das duas."

@@ -88,9 +88,10 @@
     ytmusic-tabs#tabs { top: calc(48px / var(--tk-z, 1)) !important; }
     html.tk-sticky-tabs #nav-bar-background { height: calc(48px / var(--tk-z, 1)) !important;
       -webkit-mask-image: none; mask-image: none; }
-    /* Linux (WebKitGTK): backdrop-filter draws glows around bright things in the top row and is slow
-       in VMs; a plain darker tint there instead. */
-    html[data-tk-platform="linux"] #nav-bar-background { -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    /* macOS and Linux (WebKit): a backdrop-filter under a fading mask comes out wrong there (a whitish
+       band on macOS, glows around bright things on Linux) and is slow in VMs: a plain darker tint. */
+    html[data-tk-platform="linux"] #nav-bar-background, html[data-tk-platform="macos"] #nav-bar-background {
+      -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
       background: linear-gradient(to bottom, rgba(3, 3, 3, calc(.85 * var(--tk-sc, 0))), rgba(3, 3, 3, calc(.6 * var(--tk-sc, 0))) 60%,
         rgba(3, 3, 3, 0)) !important; }
     html.tk-pp #nav-bar-background { -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -99,6 +100,12 @@
     #takaro-titlebar .tb-left { display: flex; align-items: center; gap: 2px; padding-left: 10px; }
     #takaro-titlebar .tb-drag { flex: 1; }
     #takaro-titlebar .tb-settings { display: flex; align-items: center; gap: 2px; margin-right: 52px; }
+    /* Signed-out avatar, in the account picture's spot (shown only while signed out). */
+    #takaro-titlebar .tb-guest { display: none; position: absolute; right: 150px; top: 11px; width: 26px; height: 26px;
+      padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+    #takaro-titlebar .tb-guest svg { width: 26px; height: 26px; display: block; }
+    #takaro-titlebar .tb-guest:hover { filter: brightness(1.15); }
+    html.tk-signed-out #takaro-titlebar .tb-guest { display: block; }
     ytmusic-nav-bar .history-icon-button { display: none !important; } /* replaced by the title bar's */
     /* Signed out: YTM's "Sign in" button and settings icon would sit under the title bar's buttons;
        the side menu already has a "Sign in" button. */
@@ -431,6 +438,45 @@
     T.waitFor('ytmusic-player-bar .thumbnail-image-wrapper img.image').then(() => document.querySelectorAll(SELECTOR).forEach(fit));
   }
 
+  // macOS / Linux: the app can't tell a click from an ad frame's own navigation there, so it opens
+  // nothing in the browser by itself. Links the user clicks that leave YouTube Music are opened
+  // here instead, as a new window, which the app sends to the default browser.
+  if (!T.isWindows) {
+    const inApp = (u) => {
+      if (!/^https?:$/.test(u.protocol)) return true;
+      const h = u.hostname;
+      if (['music.youtube.com', 'accounts.google.com', 'accounts.youtube.com', 'consent.youtube.com', 'consent.google.com'].includes(h)) return true;
+      if (/^(www\.|m\.)?youtube\.com$/.test(h)) return /^\/(signin|logout|ServiceLogin|accounts)/.test(u.pathname);
+      return /^accounts\.google\./.test(h);
+    };
+    document.addEventListener('click', (e) => {
+      if (e.defaultPrevented || e.button !== 0) return;
+      const a = e.target.closest?.('a[href]');
+      if (!a || (a.target && a.target !== '_self')) return; // target=_blank already becomes a new window
+      let url;
+      try {
+        url = new URL(a.href, location.href);
+      } catch {
+        return;
+      }
+      if (inApp(url)) return;
+      e.preventDefault();
+      window.open(url.href, '_blank', 'noopener');
+    }, true);
+  }
+
+  // html.tk-signed-out: nobody is signed in (YouTube Music shows its sign-in link). Only then does
+  // the title bar show its default avatar, so a signed-in account never sees it flash.
+  T.waitFor('ytmusic-nav-bar').then((nav) => {
+    const sync = () => {
+      const out = !nav.hasAttribute('user-logged-in') &&
+        !!nav.querySelector('.sign-in-link, a[href*="ServiceLogin"]');
+      document.documentElement.classList.toggle('tk-signed-out', out);
+    };
+    new MutationObserver(sync).observe(nav, { attributes: true, attributeFilter: ['user-logged-in'], childList: true, subtree: true });
+    sync();
+  });
+
   // Account menu: no "Upload music" (recognised by its icon, so in any language).
   {
     const hideUpload = () => {
@@ -513,7 +559,10 @@
       font: 400 14px/1.43 Inter, 'Segoe UI', Roboto, system-ui, sans-serif; color: var(--tk-text); }
     .tk *, .tk *::before, .tk *::after { box-sizing: border-box; }
     /* Takaro's dialogs: no text selection (only in fields). */
-    .tk-overlay { -webkit-user-select: none; user-select: none; }
+    .tk-overlay { -webkit-user-select: none; user-select: none; color-scheme: dark; }
+    /* Linux: a <select>'s list is a GTK menu in the system theme (usually light), which kept our white
+       text: dark text there so the options can be read. */
+    html[data-tk-platform="linux"] .tk select option { color: #111; background: #fff; }
     .tk-overlay input, .tk-overlay textarea { -webkit-user-select: text; user-select: text; }
     .tk-overlay { position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,.72); display: grid; place-items: center; padding: 16px; }
     .tk-panel { width: min(720px, 100%); height: min(640px, calc(100vh - 32px)); display: flex; flex-direction: column;
@@ -691,7 +740,12 @@
           } catch {}
           close();
         } }, T.t('update.skip'));
+        // macOS / Linux: no self-update (installed as an app / package); the release page opens.
         const now = h('button', { class: 'tk-btn tk-btn-primary', type: 'button', onclick: async () => {
+          if (!T.isWindows) {
+            T.invoke('open_external', { url: info.url }).catch(report);
+            return close();
+          }
           for (const b of [later, skip, now]) b.disabled = true;
           status.className = 'tk-status';
           status.textContent = T.t('update.downloading');
@@ -702,12 +756,12 @@
             status.textContent = T.t('update.failed', { error: String(e) });
             for (const b of [later, skip, now]) b.disabled = false;
           }
-        } }, T.t('update.now'));
+        } }, T.t(T.isWindows ? 'update.now' : 'update.download'));
         return [
           h('div', { class: 'tk-head tk-update' }, logo(22), h('h2', null, T.t('update.title')),
             h('span', { class: 'tk-spacer' }), iconBtn('close', T.t('ui.close'), close)),
           h('div', { class: 'tk-body' },
-            h('p', { class: 'tk-lead', style: 'margin:0' }, T.t('update.body', { latest: info.latest, current: info.current })),
+            h('p', { class: 'tk-lead', style: 'margin:0' }, T.t(T.isWindows ? 'update.body' : 'update.bodyManual', { latest: info.latest, current: info.current })),
             info.notes ? h('div', { class: 'tk-update-notes' }, plainNotes(info.notes)) : null),
           h('div', { class: 'tk-foot', style: 'flex-wrap:wrap;justify-content:flex-end' }, status, skip, later, now),
         ];
@@ -947,8 +1001,7 @@
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.language')), langSelect)),
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.zoom')), zoomSelect)),
       h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.closeAction')), closeSelect)),
-      // (The self-updater replaces the Windows exe; other systems update by installing the new package.)
-      T.isWindows && h('section', { class: 'tk-card' },
+      h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
           h('div', null, h('div', { class: 'tk-name' }, T.t('update.title')), status),
           checkBtn)),
@@ -965,7 +1018,7 @@
           h('div', { style: 'display:flex;align-items:center;gap:12px' }, logo(36),
             h('div', null, h('div', { class: 'tk-name' }, 'Takaro'), h('div', { class: 'tk-desc' }, T.t('ui.version', { version: T.version })))),
         ),
-        h('p', { class: 'tk-desc', style: 'margin:12px 0' }, T.t('ui.tagline')),
+        h('p', { class: 'tk-desc', style: 'margin:12px 0' }, T.t('ui.tagline', { os: { macos: 'macOS', linux: 'Linux' }[T.platform] || 'Windows' })),
         h('div', { class: 'tk-buttons', style: 'gap:16px' },
           link(T.t('ui.site'), 'https://takaro.nxty.cc'),
           link('GitHub', 'https://github.com/2nxty/Takaro'),
@@ -1052,6 +1105,13 @@
     // ── Title bar (frameless window) ──
     const winIcon = (...shapes) =>
       h('svg:svg', { viewBox: '0 0 10 10' }, shapes.map(([tag, attrs]) => h(`svg:${tag}`, attrs)));
+    // YouTube Music's own sign-in link (hidden under the title bar), else its sign-in page.
+    const signIn = () => {
+      const link = T.$('ytmusic-nav-bar .sign-in-link, ytmusic-nav-bar a[href*="ServiceLogin"], ytmusic-guide-signin-promo-renderer a[href*="ServiceLogin"]');
+      if (link) return link.click();
+      location.href = 'https://accounts.google.com/ServiceLogin?ltmpl=music&service=youtube&passive=true&continue=' +
+        encodeURIComponent('https://www.youtube.com/signin?action_handle_signin=true&app=desktop&next=https%3A%2F%2Fmusic.youtube.com%2F');
+    };
     const tbIcon = (key, icon, onclick, size = 24) =>
       h('button', { class: 'tb-icon', type: 'button', title: T.t(`titlebar.${key}`), 'aria-label': T.t(`titlebar.${key}`), onclick },
         T.icon(icon, size));
@@ -1069,7 +1129,13 @@
         // History: YTM shows its own button only on some pages; Takaro's is always here.
         tbIcon('history', ICONS.history, () => T.$('ytmusic-app')?.dispatchEvent(new CustomEvent('yt-navigate', {
           bubbles: true, composed: true, detail: { endpoint: { browseEndpoint: { browseId: 'FEmusic_history' } } } })), 20),
-        tbIcon('settings', ICONS.settings, () => T.openSettings(), 20)),
+        tbIcon('settings', ICONS.settings, () => T.openSettings(), 20),
+        // Signed out: a default avatar where the account picture goes; it opens the sign-in.
+        h('button', { class: 'tb-guest', type: 'button', title: T.t('titlebar.signIn'), 'aria-label': T.t('titlebar.signIn'), onclick: signIn },
+          h('svg:svg', { viewBox: '0 0 24 24' },
+            h('svg:circle', { cx: '12', cy: '12', r: '12', fill: '#5f6368' }),
+            h('svg:circle', { cx: '12', cy: '9.5', r: '4', fill: '#e8eaed' }),
+            h('svg:path', { d: 'M4.6 19.6c1.5-2.9 4.2-4.6 7.4-4.6s5.9 1.7 7.4 4.6A10.9 10.9 0 0 1 12 23a10.9 10.9 0 0 1-7.4-3.4z', fill: '#e8eaed' })))),
       h('button', { class: 'tb-win', type: 'button', title: T.t('titlebar.minimize'), 'aria-label': T.t('titlebar.minimize'), onclick: win('minimize') },
         winIcon(['path', { d: 'M0 5.5h10' }])),
       maxBtn,
@@ -1180,7 +1246,7 @@
         return false;
       }
     };
-    if (checked() || !T.isWindows) return;
+    if (checked()) return;
     (async () => {
       try {
         const info = await T.invoke('check_update'); // starts right away, in the background

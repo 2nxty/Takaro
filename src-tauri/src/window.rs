@@ -38,16 +38,27 @@ pub fn create(app: &mut App, inject: &str, start_url: Option<String>) -> tauri::
         // The page knows which system it runs on (windows / macos / linux): some features are Windows-only.
         .initialization_script(&format!("window.__TAKARO_PLATFORM__ = {:?};\n{inject}", std::env::consts::OS))
         // Links that leave YouTube Music (Google account, terms, help…) open in the default browser.
+        // Ad frames and ad pop-ups are blocked silently (they used to open the advertiser's page).
         .on_navigation(|url| {
             if in_app(url) {
                 return true;
             }
-            let _ = open_in_browser(url.as_str());
+            if is_ad(url) {
+                return false;
+            }
+            // WebView2 reports only the page's own navigations here, so they come from the user.
+            // WebKit (macOS / Linux) reports every frame's, ads' included: those are just blocked, and
+            // the page opens the user's external links itself (window.open → on_new_window below).
+            if cfg!(windows) {
+                let _ = open_in_browser(url.as_str());
+            }
             false
         })
         .on_new_window(|url, _features| {
             if matches!(url.scheme(), "http" | "https") {
-                let _ = open_in_browser(url.as_str());
+                if !is_ad(&url) {
+                    let _ = open_in_browser(url.as_str());
+                }
                 return tauri::webview::NewWindowResponse::Deny;
             }
             tauri::webview::NewWindowResponse::Allow
@@ -71,6 +82,23 @@ pub fn create(app: &mut App, inject: &str, start_url: Option<String>) -> tauri::
         }
     });
     Ok(())
+}
+
+/// Ad servers and ad click-throughs: never opened, neither in Takaro nor in the browser.
+fn is_ad(url: &tauri::Url) -> bool {
+    let host = url.host_str().unwrap_or("");
+    let path = url.path();
+    let ends = |d: &str| host == d || host.ends_with(&format!(".{d}"));
+    ends("doubleclick.net")
+        || ends("googlesyndication.com")
+        || ends("googleadservices.com")
+        || ends("googletagservices.com")
+        || ends("2mdn.net")
+        || ends("adtrafficquality.google")
+        || host.starts_with("adservice.google.")
+        || host == "imasdk.googleapis.com"
+        || ((host.ends_with("youtube.com") || host.starts_with("www.google.")) && (path.starts_with("/pagead") || path.starts_with("/aclk")))
+        || (host.ends_with("youtube.com") && (path.starts_with("/api/stats/ads") || path.starts_with("/ptracking")))
 }
 
 /// Pages that stay inside Takaro: YouTube Music itself, Google / YouTube sign-in, and the

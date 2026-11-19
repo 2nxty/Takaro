@@ -16,6 +16,7 @@ tauri = { version = "2", features = ["tray-icon"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-single-instance = "2"
+md5 = "0.8" # Last.fm API signatures
 
 # HTTP downloads on macOS / Linux (ad blocker lists, update check): curl isn't always installed
 # there (Ubuntu doesn't ship it). Windows uses its built-in curl.exe.

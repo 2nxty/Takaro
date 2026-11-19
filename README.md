@@ -30,6 +30,7 @@
 - [Download](#download)
 - [Plugins](#plugins)
 - [Synced lyrics](#synced-lyrics)
+- [Takaro Jam](#takaro-jam)
 - [Takaro links (tak://)](#takaro-links-tak)
 - [OBS overlay](#obs-overlay)
 - [Discord Rich Presence](#discord-rich-presence)
@@ -64,6 +65,10 @@ It is built with [Tauri 2](https://tauri.app) and uses the web engine your syste
 - **Takaro links** — `tak://` links open a song, playlist or channel straight in Takaro.
 - **OBS overlay** — a local "now playing" card for an OBS Browser Source.
 - **Discord Rich Presence** — optional "Listening to" card with cover art, progress and buttons.
+- **Mini player** — a small always-on-top window with the cover, the song and the playback buttons (the button next to history in the title bar).
+- **Sleep timer** — in the player's ⋮ menu: pause after 15 min … 2 h, or at the end of the song, with a fade-out.
+- **Takaro Jam** — listen together: shared rooms with a common queue, invites by code or `tak://jam/…` link (see [Takaro Jam](#takaro-jam)).
+- **Last.fm** — connect your account in Settings → General to scrobble what you listen to.
 - **Tray icon** — now playing, play/pause, previous/next, show/hide, settings and quit from the notification area.
 - **Auto-update** — checks GitHub for a new release and, after you confirm, replaces the exe and restarts.
 - **Light on resources** — event-driven scripts, optional CPU/memory optimizations, and WebView2 trims its memory while the window is minimized or hidden.
@@ -113,6 +118,7 @@ Open the **Takaro settings** button (sliders icon) in the YouTube Music top bar,
 | **Player bar** | Customizations for the bar at the bottom. | Glass bar (see-through, frosted bar and menus), center buttons (playback controls in the middle with the times on each side, song info on the left) |
 | **Synced lyrics** | Time-synced lyrics in the Lyrics tab (see below). | Open the Lyrics tab when lyrics are found |
 | **Auto-close notifications** | Closes YouTube Music's pop-up notifications ("Saved to liked music"…) after a few seconds. | Seconds |
+| **Smooth audio** | Songs fade in and out instead of cutting, and quiet songs are brought up to YouTube's reference loudness (with a limiter). Off by default. | Fade (seconds), normalize volume |
 | **Performance fixes** | Lowers YouTube Music's CPU use ([CPU Tamer](https://github.com/cyfung1031/userscript-supports)). Turn off if something misbehaves. | — |
 
 Built in (always on): a **playback speed** control from 0.25× to 2× at the top of the player's ⋮ menu (mouse wheel for 0.01 steps, click the value to reset to 1×), with **Copy Takaro link** right below it. Takaro also fixes the player-bar ⋮ menu so that clicking it again closes it.
@@ -122,6 +128,25 @@ Visual settings (player background, player bar) and most options apply instantly
 ## Synced lyrics
 
 Open the **Lyrics** tab of the player. Takaro looks the song up on [Better Lyrics](https://better-lyrics.boidu.dev) first and [LRCLIB](https://lrclib.net) next; when synced lyrics exist, the current line is highlighted and followed as the song plays, and clicking a line seeks to it. If only plain text is found it is shown as is, and if nothing is found YouTube Music's own lyrics stay. A small badge shows where the lyrics came from.
+
+## Takaro Jam
+
+Listen together with friends: everyone hears the same song at the same moment, each in their own YouTube Music (their own account, their own volume). Nothing is streamed between people; the room only shares which song is playing, where it is and the room's queue.
+
+- **Create a room:** Takaro settings → **Jam** → type your name → **Create room**. You are the host: your player leads. Share the code (e.g. `A7K92P`) or the invite link `tak://jam/A7K92P`.
+- **Join:** open the invite link (Takaro opens the Jam tab with the code filled in), or paste the code or link in **Jam → Join a room**.
+- **Shared queue:** **⋮ → Add to Jam** on any song (search results, playlists, albums, the player). The room queue plays before YouTube Music's own; it shows who added each song, the host can play, reorder and remove songs, and guests can remove their own. When it's empty, the host's autoplay goes on and everyone follows.
+- **What guests can do** (chosen by the host, can be changed during the Jam):
+  1. *Only listen*: the host controls everything.
+  2. *Add songs to the queue* (default).
+  3. *Add songs, play, pause, seek and skip*.
+
+  When guests can't control playback, their play / previous / next buttons are hidden and the progress bar can't be dragged. Volume always stays theirs.
+- **Sync:** positions are stamped with the server clock, and guests correct themselves when they drift more than 1.5 s. Someone watching an ad catches up when it ends.
+- **Connection drops** are handled: a participant (the host too) comes back as themselves after a reconnect or a page reload. If the host is gone for more than a minute, the guest who joined first becomes the host. A room nobody is in is deleted after an hour.
+- While you're in a Jam, a headphones button in the title bar opens the Jam tab.
+
+The room server is a Cloudflare Worker with one Durable Object per room, in [`jam-server/`](jam-server/README.md). Takaro uses `wss://jam.takaro.im` by default; another server can be set in **Jam → Server** or with `TAKARO_JAM_URL` at build time.
 
 ## Takaro links (tak://)
 
@@ -140,6 +165,7 @@ The **Listen on Takaro** button on the Discord card goes to `takaro.im/open/?v=<
 | `tak://playlist/<playlistId>` | A playlist or album |
 | `tak://channel/<UC…>` or `tak://channel/@handle` | An artist / channel |
 | `tak://music.youtube.com/…` | Any YouTube Music URL with `https://` swapped for `tak://` (YouTube and youtu.be links work too) |
+| `tak://jam/<CODE>` | A [Takaro Jam](#takaro-jam) invite (opens the Jam tab to join) |
 
 Use **⋮ → Copy Takaro link** in the player to copy the link of the current song.
 
@@ -264,6 +290,8 @@ Takaro/
 │  │  ├─ overlay.rs           # Local HTTP server for the OBS overlay (overlay.html)
 │  │  ├─ updater.rs           # Checks GitHub releases and replaces the exe
 │  │  ├─ tray.rs              # Tray icon and menu
+│  │  ├─ mini.rs              # Mini player window (ui/mini.html)
+│  │  ├─ lastfm.rs            # Last.fm sign-in and scrobbling
 │  │  ├─ perf.rs              # WebView2 low-memory mode while minimized/hidden
 │  │  ├─ i18n/                # App translations: <code>.json (bundled at build time)
 │  │  └─ inject/              # JavaScript injected into music.youtube.com
@@ -271,11 +299,13 @@ Takaro/
 │  │     ├─ plugins/*.js      # One file per plugin
 │  │     ├─ vendor/           # Third-party scripts (CPU Tamer)
 │  │     ├─ ui.js             # Settings panel, modals, ⋮ menu fix
+│     ├─ jam.js            # Takaro Jam: room client, sync, shared queue, Jam tab
 │  │     ├─ presence.js       # Reads the current track and sends it to Rust
 │  │     └─ store.js          # "Install in Takaro" box for the store window
 │  ├─ capabilities/           # Which remote pages may call which commands (YTM, stores)
 │  ├─ build.rs                # Bundles src/i18n/*.json + Tauri build
 │  └─ tauri.conf.json
+├─ jam-server/                # Takaro Jam server (Cloudflare Worker + Durable Objects)
 ├─ assets/                    # Icon (SVG + 1024 px PNG)
 └─ .github/workflows/         # Release build
 ```
@@ -353,7 +383,9 @@ Constants at the top of `src-tauri/src/main.rs`:
 
 | Constant | Default | Meaning |
 |---|---|---|
+| `LASTFM_API_KEY`, `LASTFM_API_SECRET` | *(empty)* | Last.fm API account for scrobbling ([create one](https://www.last.fm/api/account/create)). Same as the Discord ID: read at build time (or when running), never stored in the code. Without them the Last.fm card doesn't show. |
 | `DISCORD_CLIENT_ID` | *(empty)* | Discord application used for the presence. **Not stored in the code:** it is read from the `DISCORD_CLIENT_ID` environment variable at build time (compiled in) and can also be set when running the app (takes priority). |
+| `TAKARO_JAM_URL` | `wss://jam.takaro.im` | Takaro Jam server ([`jam-server/`](jam-server/README.md)). Read from the environment at build time (or when running, takes priority); users can also change it in Settings → Jam. |
 | `SITE_URL` | the project website | Link of the second card button (“Get Takaro”) |
 | `STATUS_DISPLAY_TYPE` | `2` | What follows "Listening to" in the member list: `0` app name, `1` artist, `2` song |
 | `SMALL_IMAGE_KEY` | `""` | Optional Art Asset key shown as a small badge over the cover |

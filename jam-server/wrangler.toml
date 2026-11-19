@@ -1,0 +1,38 @@
+# Takaro Jam: one Durable Object per room, reached through this Worker.
+# Deploy: npx wrangler deploy   (see README.md in this folder)
+name = "takaro-jam"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+# Public address. The takaro.im zone must be in the same Cloudflare account; `wrangler deploy`
+# creates the DNS record and the certificate. Without that zone, comment this out and use the
+# *.workers.dev address (workers_dev = true).
+routes = [{ pattern = "jam.takaro.im", custom_domain = true }]
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "JAM_ROOMS"
+class_name = "JamRoom"
+
+# SQLite-backed Durable Objects (the only kind on the Free plan).
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["JamRoom"]
+
+# Room creation: at most 5 rooms per minute per IP address (Workers Rate Limiting binding).
+[[ratelimits]]
+name = "CREATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 5, period = 60 }
+
+[vars]
+MAX_ROOM_PARTICIPANTS = "20"
+# A room nobody is connected to is deleted after this long.
+MAX_ROOMS_IDLE_SECONDS = "3600"
+# How long a disconnected host keeps the room before the oldest guest takes over.
+HOST_GRACE_SECONDS = "60"
+# How long a disconnected participant can come back as themselves (reconnect token lifetime).
+RECONNECT_TTL_SECONDS = "600"
+# Browser origins allowed to open a room socket (comma-separated). Clients without an Origin
+# header (tests, scripts) are allowed too.
+ALLOWED_ORIGINS = "https://music.youtube.com"

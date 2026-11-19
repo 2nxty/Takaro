@@ -45,8 +45,12 @@
     ytmusic-nav-bar #guide-button { display: none !important; } /* replaced by the title bar's ☰ */
     ytmusic-nav-bar .left-content.ytmusic-nav-bar { padding-left: calc(134px / var(--tk-z, 1)) !important; width: auto !important; }
     ytmusic-nav-bar .center-content.ytmusic-nav-bar { padding-left: 0 !important; }
-    /* Search and avatar pinned to the window (same place on every page), the search a bit shorter. */
-    ytmusic-nav-bar ytmusic-search-box { position: fixed !important; left: 50% !important; transform: translateX(-50%);
+    /* Search and avatar pinned to the window (same place on every page), the search a bit shorter.
+       The search is centred on the window and follows its width (about 40% of it, 280–640px),
+       narrower when the logo or the title bar's icons would be in the way: --tk-search-room is
+       measured in init() below. */
+    ytmusic-nav-bar ytmusic-search-box { position: fixed !important; left: 50% !important; transform: translateX(-50%) !important;
+      width: min(clamp(280px, 40vw, 640px), var(--tk-search-room, 480px)) !important; max-width: none !important;
       margin: 0 !important; top: calc(24px / var(--tk-z, 1) - 17px) !important; }
     ytmusic-nav-bar ytmusic-settings-button { position: fixed !important; margin: 0 !important;
       right: calc(150px / var(--tk-z, 1)) !important; top: calc(24px / var(--tk-z, 1) - 13px) !important; }
@@ -64,6 +68,9 @@
     ytmusic-nav-bar ytmusic-search-box .search-box .search-button yt-icon { width: 20px; height: 20px; }
     /* Side menu: no background of its own (the page's gradient / cover shows through). */
     #guide-wrapper, #mini-guide-background { background: transparent !important; }
+    /* YouTube Music's own miniplayer and fullscreen buttons on the cover/video: they break Takaro's
+       layout (Takaro has its own mini player). */
+    ytmusic-player .player-minimize-button, ytmusic-player .fullscreen-button { display: none !important; }
     /* Home and other pages: content as wide as the player page (56px margins instead of 100px). */
     html, ytmusic-app, ytmusic-app-layout, ytmusic-browse-response {
       --ytmusic-content-width: min(calc(100vw - 112px - var(--ytmusic-guide-width, 72px) - 12px), 1478px) !important; }
@@ -544,6 +551,7 @@
     back: 'M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z',
     menu: 'M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z',
     history: 'M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z',
+    mini: 'M19 11h-8v6h8v-6zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 .02H3V4.97h18v14.05z',
     forward: 'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
     close: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
     trash: 'M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
@@ -1000,14 +1008,46 @@
     };
     if (T.overlayEnabled()) applyOverlay(true);
 
+    // Last.fm: connect / disconnect (hidden when the build has no Last.fm API key).
+    const lastfmCard = h('section', { class: 'tk-card', hidden: true });
+    const lastfmRender = (user) => {
+      const desc = h('div', { class: 'tk-desc' }, user ? T.t('ui.lastfm.connected', { user }) : T.t('ui.lastfm.desc'));
+      const btn = h('button', { class: user ? 'tk-btn' : 'tk-btn tk-btn-primary', type: 'button', onclick: async () => {
+        btn.disabled = true;
+        if (user) {
+          await T.invoke('lastfm_disconnect').catch(report);
+          T.lastfmConnected?.(null);
+          return lastfmRender(null);
+        }
+        desc.className = 'tk-status';
+        desc.textContent = T.t('ui.lastfm.waiting');
+        try {
+          const name = await T.invoke('lastfm_connect');
+          T.lastfmConnected?.(name);
+          lastfmRender(name);
+        } catch (e) {
+          desc.className = 'tk-status error';
+          desc.textContent = T.t('ui.lastfm.error');
+          btn.disabled = false;
+          report(e);
+        }
+      } }, T.t(user ? 'ui.lastfm.disconnect' : 'ui.lastfm.connect'));
+      lastfmCard.replaceChildren(h('div', { class: 'tk-row' }, h('div', null, h('div', { class: 'tk-name' }, 'Last.fm'), desc), btn));
+    };
+    T.invoke('lastfm_status').then((s) => {
+      if (!s?.available) return;
+      lastfmRender(s.user);
+      lastfmCard.hidden = false;
+    }).catch(() => {});
+
     return [
-      h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.language')), langSelect)),
-      h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.zoom')), zoomSelect)),
-      h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.closeAction')), closeSelect)),
       h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
           h('div', null, h('div', { class: 'tk-name' }, T.t('update.title')), status),
           checkBtn)),
+      h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.language')), langSelect)),
+      h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.zoom')), zoomSelect)),
+      h('section', { class: 'tk-card' }, h('div', { class: 'tk-row' }, h('div', { class: 'tk-name' }, T.t('ui.closeAction')), closeSelect)),
       h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
           h('div', null, h('div', { class: 'tk-name' }, T.t('ui.overlay.title')), h('div', { class: 'tk-desc' }, T.t('ui.overlay.desc'))),
@@ -1016,6 +1056,7 @@
             applyOverlay(on);
           })),
         overlayDetails),
+      lastfmCard,
       h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
           h('div', { style: 'display:flex;align-items:center;gap:12px' }, logo(36),
@@ -1029,7 +1070,7 @@
     ];
   };
 
-  T.openSettings = () => {
+  T.openSettings = (tab) => {
     if (document.querySelector('.tk-overlay')) return;
     const listed = () => T.plugins.filter((p) => !p.core && !p.style);
     const enabledCount = () => listed().filter((p) => p.config.enabled).length;
@@ -1051,6 +1092,7 @@
           ['plugins', T.t('ui.tabs.plugins'), pluginsTab, count],
           ['style', T.t('ui.tabs.style'), (changed) => pluginsTab(changed, true)],
           ...(T.isWindows ? [['extensions', T.t('ui.tabs.extensions'), extensionsTab]] : []), // WebView2 only
+          ['jam', T.t('ui.tabs.jam'), () => T.jamTab?.() || []], // Takaro Jam (jam.js)
           ['general', T.t('ui.tabs.general'), generalTab],
         ];
         const tabButtons = tabs.map(([id, label, render, extra]) =>
@@ -1061,7 +1103,7 @@
           body.replaceChildren(...[tabs.find(([tid]) => tid === id)[2](changed)].flat().filter(Boolean));
           body.scrollTop = 0;
         };
-        select(lastTab);
+        select(tabs.some(([id]) => id === tab) ? tab : lastTab);
 
         return [
           h('div', { class: 'tk-head' }, logo(22), h('h2', null, 'Takaro'), h('span', { class: 'tk-chip' }, `v${T.version}`),
@@ -1129,6 +1171,7 @@
         tbIcon('forward', ICONS.forward, () => history.forward())),
       h('div', { class: 'tb-drag' }),
       h('div', { class: 'tb-settings' },
+        tbIcon('mini', ICONS.mini, () => T.setMini(true), 20),
         // History: YTM shows its own button only on some pages; Takaro's is always here.
         tbIcon('history', ICONS.history, () => T.$('ytmusic-app')?.dispatchEvent(new CustomEvent('yt-navigate', {
           bubbles: true, composed: true, detail: { endpoint: { browseEndpoint: { browseId: 'FEmusic_history' } } } })), 20),
@@ -1168,6 +1211,74 @@
     };
     T.bar.setMaximized(false);
     document.body.append(titlebar);
+
+    // Search box: the widest it can be while centred on the window without covering YTM's logo or
+    // the title bar's icons (both move with the window size, the page zoom and the icons shown,
+    // e.g. Jam's). The CSS above takes the smaller of this and ~40% of the window.
+    {
+      const root = document.documentElement;
+      const icons = titlebar.querySelector('.tb-settings');
+      const fit = () => {
+        const logo = T.$('ytmusic-nav-bar ytmusic-logo')?.getBoundingClientRect();
+        const left = (logo?.width ? logo.right : 0) + 16;
+        const right = innerWidth - icons.getBoundingClientRect().left + 12;
+        const room = Math.max(160, Math.floor(innerWidth - 2 * Math.max(left, right)));
+        root.style.setProperty('--tk-search-room', `${room}px`);
+      };
+      addEventListener('resize', fit);
+      new ResizeObserver(fit).observe(icons);
+      T.waitFor('ytmusic-nav-bar ytmusic-logo').then((logo) => {
+        new ResizeObserver(fit).observe(logo);
+        fit();
+      });
+      fit();
+    }
+
+    // ── Mini player ──
+    // The mini player is a window of its own (ui/mini.html); this page sends it what's playing:
+    // on play / pause / new song, and every second while it's open.
+    let miniOn = false;
+    let miniTimer = 0;
+    T.miniPush = () => {
+      if (!miniOn) return;
+      const md = navigator.mediaSession?.metadata;
+      const arts = [...(md?.artwork || [])].sort((a, b) => (parseInt(b.sizes) || 0) - (parseInt(a.sizes) || 0));
+      const v = T.$('#movie_player video');
+      const api = T.$('#movie_player');
+      const state = {
+        title: md?.title || '',
+        artist: md?.artist || '',
+        art: arts[0]?.src || '',
+        time: api?.getCurrentTime?.() ?? v?.currentTime ?? 0,
+        duration: api?.getDuration?.() ?? v?.duration ?? 0,
+        rate: v?.playbackRate || 1,
+        playing: !!v && !v.paused,
+        labels: { expand: T.t('titlebar.exitMini'), play: T.t('titlebar.playPause'), previous: T.t('titlebar.previous'), next: T.t('titlebar.next') },
+      };
+      T.invoke('mini_state', { state }).catch(() => {});
+    };
+    for (const type of ['play', 'pause', 'seeked', 'ratechange', 'loadedmetadata']) {
+      document.addEventListener(type, () => setTimeout(T.miniPush, 50), true);
+    }
+    document.addEventListener('takaro:dataloaded', () => setTimeout(T.miniPush, 300));
+    T.setMini = async (on) => {
+      try {
+        await T.invoke('set_mini', { on });
+      } catch (e) {
+        return report(e);
+      }
+      miniOn = on;
+      clearInterval(miniTimer);
+      if (on) miniTimer = setInterval(T.miniPush, 1000);
+    };
+    T.miniClosed = () => {
+      miniOn = false;
+      clearInterval(miniTimer);
+    };
+    // Double-clicking the video would open YouTube's fullscreen (hidden button above): ignored.
+    document.addEventListener('dblclick', (e) => {
+      if (e.target.closest?.('#movie_player, ytmusic-player')) e.stopPropagation();
+    }, true);
     win('sync')(); // Rust answers with the current maximized state
 
     // ── Page scrollbar (below the title bar, above the player bar) ──

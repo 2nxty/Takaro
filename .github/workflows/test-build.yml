@@ -107,6 +107,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           # Discord application ID, compiled in (repository secret DISCORD_CLIENT_ID).
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
         with:
           releaseId: ${{ needs.draft.outputs.release_id }}
           args: ${{ matrix.args }}

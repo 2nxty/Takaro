@@ -12,6 +12,7 @@
       "plugins": "Plugins",
       "style": "Style",
       "extensions": "Extensions",
+      "jam": "Jam",
       "general": "General"
     },
     "language": "Language",
@@ -26,6 +27,15 @@
     "closeQuit": "Quit Takaro",
     "closeTray": "Minimize to the tray",
     "zoom": "Page scaling",
+    "lastfm": {
+      "title": "Last.fm",
+      "desc": "Scrobble what you listen to to your Last.fm profile.",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "connected": "Connected as {user}. Songs are scrobbled after half of them (or 4 minutes).",
+      "waiting": "Allow Takaro on the Last.fm page that opened in your browser…",
+      "error": "Couldn't connect to Last.fm."
+    },
     "overlay": {
       "title": "OBS overlay",
       "desc": "Now-playing card for an OBS Browser Source.",
@@ -63,7 +73,12 @@
     "close": "Close",
     "menu": "Menu",
     "history": "History",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "mini": "Mini player",
+    "exitMini": "Back to the full window",
+    "playPause": "Play / pause",
+    "previous": "Previous",
+    "next": "Next"
   },
   "update": {
     "title": "Updates",
@@ -221,6 +236,96 @@
         "autoSkip": "Skip ads automatically (when one still gets through)"
       },
       "skip": "Skip ad"
+    },
+    "lastfm": {
+      "name": "Last.fm",
+      "description": "Scrobbles the songs you listen to."
+    },
+    "sleep-timer": {
+      "name": "Sleep timer",
+      "description": "Pauses after a while or at the end of the song.",
+      "title": "Sleep timer",
+      "off": "Off",
+      "endOfSong": "End of this song",
+      "minutes": "{n} minutes",
+      "hours": "{n} h",
+      "now": "Pausing in"
+    },
+    "smooth-audio": {
+      "name": "Smooth audio",
+      "description": "Songs fade in and out instead of cutting, and quiet songs are brought up to the same loudness as the rest.",
+      "options": {
+        "fade": "Fade length (seconds, 0 = off)",
+        "normalize": "Even out the volume (bring quiet songs up)"
+      }
+    }
+  },
+  "jam": {
+    "title": "Takaro Jam",
+    "lead": "Listen together: everyone hears the same song at the same time, each in their own YouTube Music. Volume stays yours.",
+    "name": "Your name",
+    "namePlaceholder": "How others see you",
+    "createTitle": "Create a room",
+    "createDesc": "You become the host: your player leads, guests follow.",
+    "create": "Create room",
+    "permission": "Guests can",
+    "permHint": "You can change this later in the room.",
+    "perms": {
+      "host": "Only listen (host controls)",
+      "queue": "Add songs to the queue",
+      "control": "Add songs, play, pause, seek and skip"
+    },
+    "joinTitle": "Join a room",
+    "joinDesc": "Paste the room code or the tak://jam/… invite link.",
+    "code": "Room code",
+    "codePlaceholder": "A7K92P or tak://jam/A7K92P",
+    "join": "Join",
+    "invited": "You were invited to room {code}. Type your name and press Join.",
+    "invitedElsewhere": "You were invited to room {code}. Leave this room to join it.",
+    "connecting": "Connecting…",
+    "reconnecting": "Connection lost. Reconnecting…",
+    "server": "Server",
+    "serverHint": "Leave empty to use the default Jam server.",
+    "roomCode": "Room code",
+    "copyCode": "Copy code",
+    "copyInvite": "Copy invite link",
+    "copied": "Copied!",
+    "hostIs": "Host: {name}",
+    "leave": "Leave",
+    "end": "End room",
+    "nowPlaying": "Now playing",
+    "nothingPlaying": "Nothing playing yet.",
+    "skip": "Skip",
+    "queue": "Room queue",
+    "queueEmpty": "Empty. Use \"Add to Jam\" in any song's ⋮ menu.",
+    "queueEmptyNoAdd": "Empty. Only the host can add songs in this room.",
+    "addedBy": "added by {name}",
+    "playNow": "Play now",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove",
+    "people": "People",
+    "you": "you",
+    "host": "Host",
+    "offline": "Offline",
+    "kick": "Remove from the room",
+    "addToJam": "Add to Jam",
+    "added": "Added to the Jam: {title}",
+    "youAreHost": "You are now the host of the Jam.",
+    "errors": {
+      "noName": "Type your name first.",
+      "badCode": "That isn't a valid room code.",
+      "noServer": "No Jam server set (Settings → Jam → Server).",
+      "connect": "Couldn't connect to the Jam server.",
+      "notFound": "This room doesn't exist (or has ended).",
+      "full": "This room is full.",
+      "forbidden": "The host didn't allow that.",
+      "hostOffline": "The host is offline right now.",
+      "queueFull": "The room queue is full.",
+      "rateLimited": "Too many actions, slow down.",
+      "endedHost": "The Jam has ended.",
+      "endedIdle": "The Jam ended after being empty for too long.",
+      "kicked": "You were removed from the Jam."
     }
   }
 }

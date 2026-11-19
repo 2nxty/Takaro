@@ -7,7 +7,9 @@ mod discord;
 // on macOS and Linux the same commands exist as stubs.
 #[cfg_attr(not(windows), path = "stubs/extensions.rs")]
 mod extensions;
+mod lastfm;
 mod links;
+mod mini;
 mod overlay;
 #[cfg_attr(not(windows), path = "stubs/perf.rs")]
 mod perf;
@@ -25,7 +27,8 @@ mod updater_unix_check;
 use serde::Deserialize;
 use serde_json::{json, Map, Value};
 use std::sync::mpsc::{channel, Sender};
-use tauri::State;
+use std::sync::Mutex;
+use tauri::{Manager, State};
 
 // ───────────── Configuration ─────────────
 /// Discord application ID (Developer Portal → your app → "Application ID").
@@ -39,6 +42,14 @@ const DISCORD_CLIENT_ID: &str = match option_env!("DISCORD_CLIENT_ID") {
     Some(id) => id,
     None => "",
 };
+/// Takaro Jam server (jam-server/, a Cloudflare Worker). Set `TAKARO_JAM_URL` when building to
+/// use another one (also read when running the app, overriding the compiled one). Users can still
+/// change it in Settings → Jam.
+const JAM_URL: &str = match option_env!("TAKARO_JAM_URL") {
+    Some(url) => url,
+    None => "wss://jam.takaro.im",
+};
+
 /// Link do segundo botão do card. Os textos do card vêm traduzidos do app
 /// (src/i18n/*.json → "presence"); estes são só o fallback em inglês.
 const SITE_URL: &str = "https://takaro.im";
@@ -55,7 +66,7 @@ const SMALL_IMAGE_TEXT: &str = "YouTube Music";
 // ────────────────────────────────────────
 
 /// Scripts injetados no music.youtube.com, concatenados em ordem:
-/// core → plugins (registram-se no core) → UI de configurações → Discord presence.
+/// core → plugins (registram-se no core) → UI de configurações → Jam → Discord presence.
 const INJECT: &str = concat!(
     "window.__TAKARO_VERSION__ = \"", env!("CARGO_PKG_VERSION"), "\";\n",
     include_str!(concat!(env!("OUT_DIR"), "/locales.js")), "\n", // gerado de src/i18n/*.json
@@ -74,13 +85,48 @@ const INJECT: &str = concat!(
     include_str!("inject/plugins/player-bar.js"), "\n",
     include_str!("inject/plugins/lyrics.js"), "\n",
     include_str!("inject/plugins/share-links.js"), "\n",
+    include_str!("inject/plugins/sleep-timer.js"), "\n",
+    include_str!("inject/plugins/smooth-audio.js"), "\n",
+    include_str!("inject/plugins/lastfm.js"), "\n",
     include_str!("inject/plugins/toast-autoclose.js"), "\n",
     include_str!("inject/plugins/performance.js"), "\n",
     include_str!("inject/ui.js"), "\n",
+    include_str!("inject/jam.js"), "\n", // Takaro Jam (built in, not a plugin)
     include_str!("inject/presence.js"),
 );
 
 struct Presence(Sender<discord::Cmd>);
+
+/// A tak://jam/<CODE> invite waiting for the page (taken by inject/jam.js).
+#[derive(Default)]
+struct JamInvite(Mutex<Option<String>>);
+
+/// The Jam room code from the last tak://jam link, once.
+#[tauri::command]
+fn jam_take_invite(invite: State<JamInvite>) -> Option<String> {
+    invite.0.lock().ok()?.take()
+}
+
+/// A Jam invite while Takaro runs: keep it and tell the page (it opens Settings → Jam).
+fn open_jam(app: &tauri::AppHandle, code: String) {
+    if let Ok(mut slot) = app.state::<JamInvite>().0.lock() {
+        *slot = Some(code);
+    }
+    if let Some(page) = window::ytm(app) {
+        let _ = page.eval("window.Takaro?.jamInvite?.()");
+    }
+}
+
+/// The Jam server address given to the page (ws:// or wss:// only).
+fn jam_url() -> String {
+    let url = std::env::var("TAKARO_JAM_URL").ok().filter(|u| !u.trim().is_empty()).unwrap_or_else(|| JAM_URL.to_string());
+    let url = url.trim().trim_end_matches('/').to_string();
+    if url.starts_with("wss://") || url.starts_with("ws://") {
+        url
+    } else {
+        String::new()
+    }
+}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -258,12 +304,15 @@ fn main() {
         // Opening Takaro again just brings the running window to the front.
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             // A tak:// link opened while Takaro runs (Windows / Linux pass it as an argument).
-            if let Some(url) = links::from_args(args) {
+            if let Some(code) = links::jam_from_args(args.iter().cloned()) {
+                open_jam(app, code);
+            } else if let Some(url) = links::from_args(args) {
                 go_to(app, &url);
             }
             tray::show_main(app);
         }))
         .manage(Presence(tx))
+        .manage(JamInvite::default())
         .invoke_handler(tauri::generate_handler![
             track_update,
             playback_stopped,
@@ -271,6 +320,14 @@ fn main() {
             tray::set_tray_labels,
             window::titlebar_action,
             window::set_zoom,
+            mini::set_mini,
+            mini::mini_state,
+            mini::mini_action,
+            lastfm::lastfm_status,
+            lastfm::lastfm_connect,
+            lastfm::lastfm_disconnect,
+            lastfm::lastfm_track,
+            jam_take_invite,
             overlay::set_overlay,
             updater::check_update,
             updater::install_update,
@@ -290,7 +347,16 @@ fn main() {
             links::register();
             // The ad blocker (when on) runs before everything else, so it sees YouTube Music's first
             // player response too.
-            let inject = format!("{}{INJECT}", adblock::init_script(app.handle()));
+            // Started by a tak://jam/<CODE> link: the page asks for it once it's loaded.
+            if let Some(code) = links::jam_from_args(std::env::args()) {
+                *app.state::<JamInvite>().0.lock().unwrap() = Some(code);
+            }
+            let inject = format!(
+                "window.__TAKARO_JAM_URL__ = {:?};
+{}{INJECT}",
+                jam_url(),
+                adblock::init_script(app.handle())
+            );
             window::create(app, &inject, links::from_args(std::env::args()))?;
             Ok(())
         })
@@ -302,7 +368,10 @@ fn main() {
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = &event {
                 for link in urls {
-                    if let Some(url) = links::to_url(link.as_str()) {
+                    if let Some(code) = links::jam_code(link.as_str()) {
+                        open_jam(app, code);
+                        tray::show_main(app);
+                    } else if let Some(url) = links::to_url(link.as_str()) {
                         go_to(app, &url);
                         tray::show_main(app);
                     }

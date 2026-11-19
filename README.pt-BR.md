@@ -34,6 +34,10 @@ Ele é feito com [Tauri 2](https://tauri.app) e usa o motor web que o seu sistem
 - **Links do Takaro**: links `tak://` abrem uma música, playlist ou canal direto no Takaro.
 - **Overlay para OBS**: um card local de "tocando agora" para usar como Browser Source no OBS.
 - **Discord Rich Presence**: card opcional "Ouvindo" com capa, progresso e botões.
+- **Mini player**: uma janela pequena sempre no topo com a capa, a música e os botões (o botão ao lado do histórico na barra de título).
+- **Timer para dormir**: no menu ⋮ do player: pausa depois de 15 min … 2 h, ou no fim da música, com o som diminuindo aos poucos.
+- **Takaro Jam**: ouçam juntos: salas compartilhadas com fila em comum, convites por código ou link `tak://jam/…` (veja [Takaro Jam](#takaro-jam)).
+- **Last.fm**: conecte sua conta em Configurações → Geral para registrar (scrobble) o que você ouve.
 - **Ícone na bandeja**: música atual, tocar/pausar, anterior/próxima, mostrar/esconder, configurações e sair pela área de notificação.
 - **Atualização automática**: procura uma release nova no GitHub e, depois que você confirma, troca o exe e reinicia.
 - **Leve no PC**: scripts orientados a eventos, otimizações opcionais de CPU/memória, e o WebView2 reduz a memória enquanto a janela está minimizada ou escondida.
@@ -83,6 +87,7 @@ Clique no botão **Configurações do Takaro** (ícone de sliders) na barra supe
 | **Barra do player** | Personalizações da barra na parte de baixo. | Barra de vidro (barra e menus translúcidos, com vidro fosco), centralizar botões (controles no meio com os tempos de cada lado, informações da música à esquerda) |
 | **Letras sincronizadas** | Letras sincronizadas na aba Letra (veja abaixo). | Abrir a aba Letra quando encontrar a letra |
 | **Fechar avisos automaticamente** | Fecha os avisos do YouTube Music ("Salvo nas músicas que gostei"…) depois de alguns segundos. | Segundos |
+| **Áudio suave** | As músicas entram e saem com fade em vez de cortar, e as mais baixas sobem até o volume de referência do YouTube (com limitador). Desligado por padrão. | Fade (segundos), normalizar volume |
 | **Otimizações de desempenho** | Reduz o uso de CPU do YouTube Music ([CPU Tamer](https://github.com/cyfung1031/userscript-supports)). Desligue se algo se comportar mal. | — |
 
 Embutido (sempre ligado): um controle de **velocidade de reprodução** de 0,25× a 2× no topo do menu ⋮ do player (roda do mouse para passos de 0,01; clique no valor para voltar a 1×), com **Copiar link do Takaro** logo abaixo. O Takaro também corrige o menu ⋮ da barra do player para que um segundo clique o feche.
@@ -92,6 +97,25 @@ As configurações visuais (fundo do player, barra do player) e a maioria das op
 ## Letras sincronizadas
 
 Abra a aba **Letra** do player. O Takaro procura a música primeiro no [Better Lyrics](https://better-lyrics.boidu.dev) e depois no [LRCLIB](https://lrclib.net); quando existe letra sincronizada, a linha atual fica destacada e acompanha a música, e clicar numa linha pula para aquele ponto. Se só existir o texto, ele aparece como está; se nada for encontrado, fica a letra do próprio YouTube Music. Um selo pequeno mostra de onde veio a letra.
+
+## Takaro Jam
+
+Ouça junto com amigos: todo mundo escuta a mesma música no mesmo momento, cada um no seu YouTube Music (sua conta, seu volume). Nada é transmitido entre as pessoas; a sala só compartilha qual música está tocando, em que ponto e a fila da sala.
+
+- **Criar uma sala:** Configurações do Takaro → **Jam** → digite seu nome → **Criar sala**. Você é o anfitrião: seu player conduz. Compartilhe o código (ex.: `A7K92P`) ou o link de convite `tak://jam/A7K92P`.
+- **Entrar:** abra o link de convite (o Takaro abre a aba Jam com o código preenchido) ou cole o código ou o link em **Jam → Entrar numa sala**.
+- **Fila compartilhada:** **⋮ → Adicionar ao Jam** em qualquer música (busca, playlists, álbuns, player). A fila da sala toca antes da fila do próprio YouTube Music; ela mostra quem adicionou cada música, o anfitrião pode tocar, reordenar e remover, e os convidados podem remover as que eles mesmos adicionaram. Com a fila vazia, o autoplay do anfitrião continua e todos acompanham.
+- **O que os convidados podem fazer** (escolhido pelo anfitrião, dá para mudar durante o Jam):
+  1. *Só ouvir*: o anfitrião controla tudo.
+  2. *Adicionar músicas à fila* (padrão).
+  3. *Adicionar, tocar, pausar, avançar e pular*.
+
+  Quando os convidados não podem controlar, os botões tocar / anterior / próxima deles ficam escondidos e a barra de progresso não pode ser arrastada. O volume é sempre de cada um.
+- **Sincronia:** as posições usam o relógio do servidor, e os convidados se corrigem quando ficam mais de 1,5 s fora. Quem estiver vendo um anúncio alcança os outros quando ele termina.
+- **Quedas de conexão:** um participante (o anfitrião também) volta como ele mesmo depois de reconectar ou recarregar a página. Se o anfitrião sumir por mais de um minuto, o convidado que entrou primeiro vira o anfitrião. Uma sala vazia é apagada depois de uma hora.
+- Enquanto você está num Jam, um botão de fone na barra de título abre a aba Jam.
+
+O servidor das salas é um Cloudflare Worker com um Durable Object por sala, em [`jam-server/`](jam-server/README.md). O Takaro usa `wss://jam.takaro.im` por padrão; outro servidor pode ser definido em **Jam → Servidor** ou com `TAKARO_JAM_URL` na compilação.
 
 ## Links do Takaro (tak://)
 
@@ -110,6 +134,7 @@ O botão **Ouvir no Takaro** do cartão do Discord leva a `takaro.im/open/?v=<id
 | `tak://playlist/<playlistId>` | Uma playlist ou álbum |
 | `tak://channel/<UC…>` ou `tak://channel/@handle` | Um artista / canal |
 | `tak://music.youtube.com/…` | Qualquer endereço do YouTube Music trocando `https://` por `tak://` (links do YouTube e youtu.be também funcionam) |
+| `tak://jam/<CÓDIGO>` | Um convite do [Takaro Jam](#takaro-jam) (abre a aba Jam para entrar) |
 
 Use **⋮ → Copiar link do Takaro** no player para copiar o link da música atual.
 
@@ -225,6 +250,8 @@ Takaro/
 │  │  ├─ overlay.rs           # Servidor HTTP local do overlay para OBS (overlay.html)
 │  │  ├─ updater.rs           # Consulta as releases do GitHub e troca o exe
 │  │  ├─ tray.rs              # Ícone e menu da bandeja
+│  │  ├─ mini.rs              # Janela do mini player (ui/mini.html)
+│  │  ├─ lastfm.rs            # Login e scrobble do Last.fm
 │  │  ├─ perf.rs              # Modo de pouca memória do WebView2 com a janela minimizada/escondida
 │  │  ├─ i18n/                # Traduções do app: <código>.json (embutidas no build)
 │  │  └─ inject/              # JavaScript injetado no music.youtube.com
@@ -232,11 +259,13 @@ Takaro/
 │  │     ├─ plugins/*.js      # Um arquivo por plugin
 │  │     ├─ vendor/           # Scripts de terceiros (CPU Tamer)
 │  │     ├─ ui.js             # Painel de configurações, modais, correção do menu ⋮
+│     ├─ jam.js            # Takaro Jam: cliente da sala, sincronia, fila compartilhada, aba Jam
 │  │     ├─ presence.js       # Lê a faixa atual e envia para o Rust
 │  │     └─ store.js          # Caixa "Instalar no Takaro" na janela da loja
 │  ├─ capabilities/           # Quais páginas remotas podem chamar quais comandos (YTM, lojas)
 │  ├─ build.rs                # Junta src/i18n/*.json + build do Tauri
 │  └─ tauri.conf.json
+├─ jam-server/                # Servidor do Takaro Jam (Cloudflare Worker + Durable Objects)
 ├─ assets/                    # Ícone (SVG + PNG 1024 px)
 └─ .github/workflows/         # Build de release
 ```
@@ -265,7 +294,9 @@ Constantes no topo de `src-tauri/src/main.rs`:
 
 | Constante | Padrão | Significado |
 |---|---|---|
+| `LASTFM_API_KEY`, `LASTFM_API_SECRET` | *(vazio)* | Conta de API do Last.fm para o scrobble ([crie uma](https://www.last.fm/api/account/create)). Igual ao ID do Discord: lida na compilação (ou ao abrir o app), nunca fica no código. Sem elas o card do Last.fm não aparece. |
 | `DISCORD_CLIENT_ID` | *(vazio)* | Aplicação do Discord usada na presença. **Não fica no código:** é lida da variável de ambiente `DISCORD_CLIENT_ID` na hora de compilar (vai embutida no exe) e também pode ser definida ao abrir o app (tem prioridade). |
+| `TAKARO_JAM_URL` | `wss://jam.takaro.im` | Servidor do Takaro Jam ([`jam-server/`](jam-server/README.md)). Lido do ambiente na compilação (ou ao abrir o app, tem prioridade); o usuário também pode trocar em Configurações → Jam. |
 | `SITE_URL` | o site do projeto | Link do segundo botão do card (“Get Takaro”) |
 | `STATUS_DISPLAY_TYPE` | `2` | O que aparece depois de "Ouvindo" na lista de membros: `0` nome do app, `1` artista, `2` música |
 | `SMALL_IMAGE_KEY` | `""` | Chave opcional de um Art Asset exibido como ícone pequeno sobre a capa |

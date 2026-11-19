@@ -1,0 +1,97 @@
+<!doctype html>
+<!-- Takaro's mini player window. The state comes from the main page (window.update, called by
+     the app); the buttons go back through the app (mini_action). -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Takaro</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0b0b; color: #fff;
+    font-family: Roboto, 'Segoe UI', system-ui, sans-serif; user-select: none; -webkit-user-select: none; cursor: default; }
+  #bg { position: fixed; inset: -40px; background: #111 center / cover no-repeat; filter: blur(40px) brightness(.45) saturate(1.3); }
+  main { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; }
+  .top { align-self: stretch; height: 36px; display: flex; justify-content: flex-end; align-items: center; padding: 0 6px; flex: none; }
+  button { width: 32px; height: 32px; border: 0; border-radius: 8px; padding: 0; background: transparent; color: inherit;
+    display: grid; place-items: center; cursor: default; }
+  button:hover { background: rgba(255,255,255,.12); }
+  svg { fill: currentColor; }
+  #cover { width: min(64vw, calc(100vh - 190px), 260px); aspect-ratio: 1; border-radius: 8px; background: #222 center / cover no-repeat;
+    box-shadow: 0 8px 28px rgba(0,0,0,.55); flex: none; }
+  .info { width: 100%; padding: 14px 20px 0; box-sizing: border-box; text-align: center; }
+  #title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #artist { font-size: 13px; opacity: .7; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar { width: calc(100% - 40px); height: 4px; margin-top: 12px; border-radius: 2px; background: rgba(255,255,255,.2); overflow: hidden; flex: none; }
+  #fill { height: 100%; width: 0; background: linear-gradient(90deg, #ff3040, #781ec8); }
+  .controls { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+  #play { width: 48px; height: 48px; border-radius: 50%; background: #fff; color: #000; }
+  #play:hover { background: #e5e5e5; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<main>
+  <div class="top"><button id="expand" data-action="expand"></button></div>
+  <div id="cover"></div>
+  <div class="info"><div id="title"></div><div id="artist"></div></div>
+  <div class="bar"><div id="fill"></div></div>
+  <div class="controls">
+    <button id="previous" data-action="previous"></button>
+    <button id="play" data-action="toggle"></button>
+    <button id="next" data-action="next"></button>
+  </div>
+</main>
+<script>
+  const ICONS = {
+    expand: 'M21 11V3h-8l3.29 3.29-10 10L3 13v8h8l-3.29-3.29 10-10z',
+    play: 'M8 5v14l11-7z',
+    pause: 'M6 19h4V5H6v14zm8-14v14h4V5h-4z',
+    next: 'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z',
+    previous: 'M6 6h2v12H6zm3.5 6l8.5 6V6z',
+  };
+  const icon = (d, size) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}"><path d="${d}"/></svg>`;
+  const $ = (id) => document.getElementById(id);
+  const invoke = (cmd, args) => window.__TAURI_INTERNALS__.invoke(cmd, args);
+  const act = (action) => invoke('mini_action', { action }).catch(() => {});
+
+  $('expand').innerHTML = icon(ICONS.expand, 18);
+  $('previous').innerHTML = icon(ICONS.previous, 22);
+  $('next').innerHTML = icon(ICONS.next, 22);
+  $('play').innerHTML = icon(ICONS.pause, 26);
+  for (const b of document.querySelectorAll('button')) b.addEventListener('click', () => act(b.dataset.action));
+  // Anywhere but a button drags the window.
+  document.addEventListener('mousedown', (e) => e.button === 0 && !e.target.closest('button') && act('drag'));
+
+  // The progress keeps moving between updates (the hidden main page may update less often).
+  let s = null, at = 0;
+  const progress = () => {
+    if (!s || !(s.duration > 0)) return ($('fill').style.width = '0');
+    const t = s.time + (s.playing ? (performance.now() - at) / 1000 * (s.rate || 1) : 0);
+    $('fill').style.width = `${Math.min(100, (t / s.duration) * 100)}%`;
+  };
+  setInterval(progress, 250);
+
+  let playing = null, art = null;
+  window.update = (state) => {
+    s = state;
+    at = performance.now();
+    $('title').textContent = state.title || '';
+    $('artist').textContent = state.artist || '';
+    if (state.art !== art) {
+      art = state.art;
+      const css = art ? `url("${art.replace(/"/g, '%22')}")` : '';
+      $('bg').style.backgroundImage = css;
+      $('cover').style.backgroundImage = css;
+    }
+    if (state.playing !== playing) {
+      playing = state.playing;
+      $('play').innerHTML = icon(playing ? ICONS.pause : ICONS.play, 26);
+    }
+    for (const [id, label] of Object.entries(state.labels || {})) {
+      if ($(id) && $(id).title !== label) $(id).title = $(id).ariaLabel = label;
+    }
+    progress();
+  };
+  act('ready');
+</script>
+</body>
+</html>

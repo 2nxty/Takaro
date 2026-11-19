@@ -3,6 +3,7 @@
 //!   tak://watch/<videoId>[/<playlistId>]     tak://playlist/<id>      tak://channel/<UC…|@handle>
 //!   tak://music.youtube.com/<path>            (swap https:// for tak:// on a music.youtube.com URL)
 //!   tak://www.youtube.com/watch?v=…  tak://youtu.be/<id>   (opened as YouTube Music)
+//!   tak://jam/<CODE>                          (a Takaro Jam invite: opens the Jam tab to join)
 //!
 //! Registration:
 //!   Windows — for the current user (HKCU) on every start, pointing at this exe, so it keeps
@@ -176,9 +177,45 @@ pub fn from_args<I: IntoIterator<Item = String>>(args: I) -> Option<String> {
     args.into_iter().find(|a| a.starts_with("tak://")).and_then(|a| to_url(&a))
 }
 
+/// Jam room codes: 6 characters without look-alikes (same alphabet as jam-server/src/utils/room-code.ts).
+const JAM_ALPHABET: &str = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+/// A `tak://jam/<CODE>` invite: the room code (uppercase), or None if it isn't one.
+pub fn jam_code(link: &str) -> Option<String> {
+    let rest = link.trim().strip_prefix("tak://")?;
+    let rest = rest.split(['?', '#']).next()?.trim_end_matches('/');
+    let mut parts = rest.split('/').filter(|p| !p.is_empty());
+    if !parts.next()?.eq_ignore_ascii_case("jam") {
+        return None;
+    }
+    let code = parts.next()?;
+    if parts.next().is_some() {
+        return None;
+    }
+    let code: String = code.chars().filter(|c| *c != '-').collect::<String>().to_ascii_uppercase();
+    (code.chars().count() == 6 && code.chars().all(|c| JAM_ALPHABET.contains(c))).then_some(code)
+}
+
+/// The first tak://jam/… invite among command-line arguments, as a room code.
+pub fn jam_from_args<I: IntoIterator<Item = String>>(args: I) -> Option<String> {
+    args.into_iter().find(|a| a.starts_with("tak://")).and_then(|a| jam_code(&a))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::to_url;
+    use super::{jam_code, to_url};
+
+    #[test]
+    fn parses_jam_invites() {
+        assert_eq!(jam_code("tak://jam/A7K92P").as_deref(), Some("A7K92P"));
+        assert_eq!(jam_code("tak://jam/a7k-92p/").as_deref(), Some("A7K92P"));
+        assert_eq!(jam_code("tak://JAM/A7K92P?x=1").as_deref(), Some("A7K92P"));
+        assert_eq!(jam_code("tak://jam/A7K92"), None); // too short
+        assert_eq!(jam_code("tak://jam/A7K920"), None); // 0 isn't used in codes
+        assert_eq!(jam_code("tak://jam/A7K92P/x"), None);
+        assert_eq!(jam_code("tak://watch/A7K92P"), None);
+        assert_eq!(to_url("tak://jam/A7K92P"), None); // never opened as a page
+    }
 
     #[test]
     fn linux_desktop_file() {

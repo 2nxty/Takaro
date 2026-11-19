@@ -3,6 +3,9 @@ use std::{env, fs, path::Path};
 fn main() {
     // Rebuild when the Discord client ID given at build time changes (see main.rs).
     println!("cargo:rerun-if-env-changed=DISCORD_CLIENT_ID");
+    println!("cargo:rerun-if-env-changed=LASTFM_API_KEY");
+    println!("cargo:rerun-if-env-changed=LASTFM_API_SECRET");
+    println!("cargo:rerun-if-env-changed=TAKARO_JAM_URL");
     bundle_locales();
 
     // Generates the "allow-track-update" and "allow-playback-stopped" permissions
@@ -24,6 +27,14 @@ fn main() {
                 "set_tray_labels",
                 "titlebar_action",
                 "set_zoom",
+                "set_mini",
+                "mini_state",
+                "mini_action",
+                "lastfm_status",
+                "lastfm_connect",
+                "lastfm_disconnect",
+                "lastfm_track",
+                "jam_take_invite",
                 "set_overlay",
                 "check_update",
                 "install_update",

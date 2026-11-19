@@ -12,6 +12,7 @@
       "plugins": "Plugins",
       "style": "Estilo",
       "extensions": "Extensiones",
+      "jam": "Jam",
       "general": "General"
     },
     "language": "Idioma",
@@ -26,6 +27,15 @@
     "closeQuit": "Cerrar Takaro",
     "closeTray": "Minimizar a la bandeja",
     "zoom": "Escala de la página",
+    "lastfm": {
+      "title": "Last.fm",
+      "desc": "Registra (scrobble) lo que escuchas en tu perfil de Last.fm.",
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "connected": "Conectado como {user}. Las canciones se registran tras la mitad (o 4 minutos).",
+      "waiting": "Permite Takaro en la página de Last.fm que se abrió en tu navegador…",
+      "error": "No se pudo conectar con Last.fm."
+    },
     "overlay": {
       "title": "Overlay para OBS",
       "desc": "Tarjeta de “sonando ahora” para usar como fuente de navegador en OBS.",
@@ -63,7 +73,12 @@
     "close": "Cerrar",
     "menu": "Menú",
     "history": "Historial",
-    "signIn": "Acceder"
+    "signIn": "Acceder",
+    "mini": "Minirreproductor",
+    "exitMini": "Volver a la ventana completa",
+    "playPause": "Reproducir / pausar",
+    "previous": "Anterior",
+    "next": "Siguiente"
   },
   "update": {
     "title": "Actualizaciones",
@@ -221,6 +236,96 @@
         "autoSkip": "Saltar anuncios automáticamente (cuando alguno aún pase)"
       },
       "skip": "Saltar anuncio"
+    },
+    "lastfm": {
+      "name": "Last.fm",
+      "description": "Registra (scrobble) las canciones que escuchas."
+    },
+    "sleep-timer": {
+      "name": "Temporizador",
+      "description": "Pausa tras un tiempo o al final de la canción.",
+      "title": "Temporizador para dormir",
+      "off": "Apagado",
+      "endOfSong": "Fin de esta canción",
+      "minutes": "{n} minutos",
+      "hours": "{n} h",
+      "now": "Pausa en"
+    },
+    "smooth-audio": {
+      "name": "Audio suave",
+      "description": "Las canciones entran y salen poco a poco en vez de cortar, y las pistas bajas suben al mismo volumen que las demás.",
+      "options": {
+        "fade": "Duración de la transición (segundos, 0 = apagada)",
+        "normalize": "Igualar el volumen (subir las canciones bajas)"
+      }
+    }
+  },
+  "jam": {
+    "title": "Takaro Jam",
+    "lead": "Escuchen juntos: todos oyen la misma canción al mismo tiempo, cada uno en su YouTube Music. El volumen sigue siendo tuyo.",
+    "name": "Tu nombre",
+    "namePlaceholder": "Cómo te ven los demás",
+    "createTitle": "Crear una sala",
+    "createDesc": "Serás el anfitrión: tu reproductor manda y los invitados te siguen.",
+    "create": "Crear sala",
+    "permission": "Los invitados pueden",
+    "permHint": "Puedes cambiarlo después, en la sala.",
+    "perms": {
+      "host": "Solo escuchar (el anfitrión controla)",
+      "queue": "Añadir canciones a la cola",
+      "control": "Añadir, reproducir, pausar, adelantar y saltar"
+    },
+    "joinTitle": "Unirse a una sala",
+    "joinDesc": "Pega el código de la sala o el enlace de invitación tak://jam/….",
+    "code": "Código de la sala",
+    "codePlaceholder": "A7K92P o tak://jam/A7K92P",
+    "join": "Unirse",
+    "invited": "Te invitaron a la sala {code}. Escribe tu nombre y pulsa Unirse.",
+    "invitedElsewhere": "Te invitaron a la sala {code}. Sal de esta sala para unirte a ella.",
+    "connecting": "Conectando…",
+    "reconnecting": "Se perdió la conexión. Reconectando…",
+    "server": "Servidor",
+    "serverHint": "Déjalo vacío para usar el servidor predeterminado de Jam.",
+    "roomCode": "Código de la sala",
+    "copyCode": "Copiar código",
+    "copyInvite": "Copiar enlace de invitación",
+    "copied": "¡Copiado!",
+    "hostIs": "Anfitrión: {name}",
+    "leave": "Salir",
+    "end": "Cerrar sala",
+    "nowPlaying": "Sonando ahora",
+    "nothingPlaying": "Todavía no suena nada.",
+    "skip": "Saltar",
+    "queue": "Cola de la sala",
+    "queueEmpty": "Vacía. Usa \"Añadir a Jam\" en el menú ⋮ de cualquier canción.",
+    "queueEmptyNoAdd": "Vacía. En esta sala solo el anfitrión añade canciones.",
+    "addedBy": "añadida por {name}",
+    "playNow": "Reproducir ahora",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "remove": "Quitar",
+    "people": "Personas",
+    "you": "tú",
+    "host": "Anfitrión",
+    "offline": "Desconectado",
+    "kick": "Quitar de la sala",
+    "addToJam": "Añadir a Jam",
+    "added": "Añadida a Jam: {title}",
+    "youAreHost": "Ahora eres el anfitrión de Jam.",
+    "errors": {
+      "noName": "Escribe tu nombre primero.",
+      "badCode": "Ese no es un código de sala válido.",
+      "noServer": "No hay servidor de Jam configurado (Ajustes → Jam → Servidor).",
+      "connect": "No se pudo conectar al servidor de Jam.",
+      "notFound": "Esta sala no existe (o ya terminó).",
+      "full": "Esta sala está llena.",
+      "forbidden": "El anfitrión no lo permitió.",
+      "hostOffline": "El anfitrión está desconectado ahora.",
+      "queueFull": "La cola de la sala está llena.",
+      "rateLimited": "Demasiadas acciones seguidas, ve más despacio.",
+      "endedHost": "La Jam terminó.",
+      "endedIdle": "La Jam terminó tras quedar vacía demasiado tiempo.",
+      "kicked": "Te quitaron de la Jam."
     }
   }
 }

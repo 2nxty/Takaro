@@ -4,10 +4,8 @@ name = "takaro-jam"
 main = "src/index.ts"
 compatibility_date = "2026-11-01"
 
-# Public address. The takaro.im zone must be in the same Cloudflare account; `wrangler deploy`
-# creates the DNS record and the certificate. Without that zone, comment this out and use the
-# *.workers.dev address (workers_dev = true).
-routes = [{ pattern = "jam.takaro.im", custom_domain = true }]
+# Public address: the *.workers.dev one, plus your own domain given when deploying (kept out of
+# the repository):  npx wrangler deploy --domain jam.example.com   (see README.md)
 workers_dev = true
 
 [[durable_objects.bindings]]

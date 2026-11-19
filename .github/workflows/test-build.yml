@@ -2,7 +2,7 @@ name: Test build
 
 # Private test builds for Windows, macOS and Linux.
 #
-# Runs on every push to a `test/**` branch, or by hand (Actions → Test build → Run workflow).
+# Runs on every push to the `tests` branch (or any `test/**` branch), or by hand (Actions → Test build → Run workflow).
 # The installers go to a DRAFT release: drafts are only visible to people with write access to
 # the repository, never to the public, and they don't create a tag until published. The
 # self-updater ignores them too (it only looks at the latest published release).
@@ -10,7 +10,7 @@ name: Test build
 
 on:
   push:
-    branches: ['test/**']
+    branches: ['tests', 'test/**']
   workflow_dispatch:
 
 permissions:
@@ -109,6 +109,8 @@ jobs:
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
+          # Takaro Jam server (wss://…), compiled in: repository secret or variable TAKARO_JAM_URL.
+          TAKARO_JAM_URL: ${{ secrets.TAKARO_JAM_URL || vars.TAKARO_JAM_URL }}
         with:
           releaseId: ${{ needs.draft.outputs.release_id }}
           args: ${{ matrix.args }}

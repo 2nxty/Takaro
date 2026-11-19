@@ -146,7 +146,7 @@ Listen together with friends: everyone hears the same song at the same moment, e
 - **Connection drops** are handled: a participant (the host too) comes back as themselves after a reconnect or a page reload. If the host is gone for more than a minute, the guest who joined first becomes the host. A room nobody is in is deleted after an hour.
 - While you're in a Jam, a headphones button in the title bar opens the Jam tab.
 
-The room server is a Cloudflare Worker with one Durable Object per room, in [`jam-server/`](jam-server/README.md). Takaro uses `wss://jam.takaro.im` by default; another server can be set in **Jam → Server** or with `TAKARO_JAM_URL` at build time.
+The room server is a Cloudflare Worker with one Durable Object per room, in [`jam-server/`](jam-server/README.md). Its address isn't stored in the repository: builds get it from `TAKARO_JAM_URL` (see [Configuration](#configuration)), and it can also be set in **Jam → Server**.
 
 ## Takaro links (tak://)
 
@@ -385,7 +385,7 @@ Constants at the top of `src-tauri/src/main.rs`:
 |---|---|---|
 | `LASTFM_API_KEY`, `LASTFM_API_SECRET` | *(empty)* | Last.fm API account for scrobbling ([create one](https://www.last.fm/api/account/create)). Same as the Discord ID: read at build time (or when running), never stored in the code. Without them the Last.fm card doesn't show. |
 | `DISCORD_CLIENT_ID` | *(empty)* | Discord application used for the presence. **Not stored in the code:** it is read from the `DISCORD_CLIENT_ID` environment variable at build time (compiled in) and can also be set when running the app (takes priority). |
-| `TAKARO_JAM_URL` | `wss://jam.takaro.im` | Takaro Jam server ([`jam-server/`](jam-server/README.md)). Read from the environment at build time (or when running, takes priority); users can also change it in Settings → Jam. |
+| `TAKARO_JAM_URL` | *(empty)* | Takaro Jam server, `wss://…` ([`jam-server/`](jam-server/README.md)). **Not stored in the code:** read from the environment at build time (compiled in) or when running (takes priority); the release workflows take it from the repository secret or variable `TAKARO_JAM_URL`. Users can also change it in Settings → Jam. |
 | `SITE_URL` | the project website | Link of the second card button (“Get Takaro”) |
 | `STATUS_DISPLAY_TYPE` | `2` | What follows "Listening to" in the member list: `0` app name, `1` artist, `2` song |
 | `SMALL_IMAGE_KEY` | `""` | Optional Art Asset key shown as a small badge over the cover |
@@ -415,7 +415,7 @@ Installed extensions live in `%LOCALAPPDATA%\com.takaro.player\extensions`. User
 
 3. The **Release** workflow builds every system on its own runner — `Takaro.exe` and `Takaro-Setup.exe` (Windows), `Takaro-macOS.dmg` (universal: Intel + Apple Silicon), `Takaro-Linux.AppImage` and `Takaro-Linux.deb` — and attaches them to a new GitHub Release. The file names never change, so the website's download buttons (`releases/latest/download/<file>`) and the Windows updater always get the newest one.
 
-**Private test builds:** push to a `test/…` branch (or run **Actions → Test build**). The installers for all three systems go to a *draft* release, visible only to people with write access.
+**Private test builds:** push to the `tests` branch (or a `test/…` branch, or run **Actions → Test build**). The installers for all three systems go to a *draft* release, visible only to people with write access.
 
 **Website:** in the repository settings, enable **Pages → Deploy from a branch → `main` / `docs`**. To use a custom domain, put it in `docs/CNAME` and point a `CNAME` DNS record to `<user>.github.io`.
 

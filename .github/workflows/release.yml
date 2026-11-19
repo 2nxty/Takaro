@@ -40,6 +40,8 @@ jobs:
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
+          # Takaro Jam server (wss://…), compiled in: repository secret or variable TAKARO_JAM_URL.
+          TAKARO_JAM_URL: ${{ secrets.TAKARO_JAM_URL || vars.TAKARO_JAM_URL }}
 
       - name: Prepare artifacts
         shell: pwsh
@@ -79,6 +81,8 @@ jobs:
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
+          # Takaro Jam server (wss://…), compiled in: repository secret or variable TAKARO_JAM_URL.
+          TAKARO_JAM_URL: ${{ secrets.TAKARO_JAM_URL || vars.TAKARO_JAM_URL }}
 
       - name: Prepare artifact
         run: cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg Takaro-macOS.dmg
@@ -121,6 +125,8 @@ jobs:
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
+          # Takaro Jam server (wss://…), compiled in: repository secret or variable TAKARO_JAM_URL.
+          TAKARO_JAM_URL: ${{ secrets.TAKARO_JAM_URL || vars.TAKARO_JAM_URL }}
 
       - name: Prepare artifacts
         run: |

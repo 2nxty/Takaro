@@ -62,20 +62,24 @@ npx wrangler dev            # in another terminal, then:
 npm run test:e2e            # several WebSocket clients against the running Worker
 ```
 
-`node test/e2e.mjs https://jam.example.com` runs the same checks against a deployed Worker.
+`node test/e2e.mjs https://<your Worker address>` runs the same checks against a deployed Worker.
 
 ## Deploy
 
 ```powershell
 npx wrangler login
-npx wrangler deploy
+npx wrangler deploy --domain jam.example.com
 ```
 
-`wrangler.toml` publishes the Worker on **`jam.takaro.im`** as a Custom Domain. This needs the
-`takaro.im` zone in the same Cloudflare account (its DNS on Cloudflare); `wrangler deploy`
-creates the DNS record and the certificate. Without that zone, remove the `routes` line and use
-the `*.workers.dev` address that `wrangler deploy` prints. In that case, build Takaro with
-`TAKARO_JAM_URL=wss://takaro-jam.<your-subdomain>.workers.dev`.
+The domain is passed on the command line, so it isn't stored in the repository. It becomes a
+Custom Domain of the Worker; its zone (`example.com`) must be in the same Cloudflare account, and
+`wrangler deploy` creates the DNS record and the certificate. Pass `--domain` on every deploy.
+Without your own domain, run plain `npx wrangler deploy` and use the `*.workers.dev` address it
+prints.
+
+Then give Takaro builds the address through the `TAKARO_JAM_URL` environment variable
+(`wss://jam.example.com`). In GitHub Actions, that's a repository secret or variable named
+`TAKARO_JAM_URL`.
 
 The SQLite migration (`[[migrations]] new_sqlite_classes = ["JamRoom"]`) runs on the first
 deploy. Never rename or remove that class without a new migration.

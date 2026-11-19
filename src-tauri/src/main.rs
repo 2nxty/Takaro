@@ -42,12 +42,15 @@ const DISCORD_CLIENT_ID: &str = match option_env!("DISCORD_CLIENT_ID") {
     Some(id) => id,
     None => "",
 };
-/// Takaro Jam server (jam-server/, a Cloudflare Worker). Set `TAKARO_JAM_URL` when building to
-/// use another one (also read when running the app, overriding the compiled one). Users can still
-/// change it in Settings → Jam.
+/// Takaro Jam server (jam-server/, a Cloudflare Worker), e.g. `wss://jam.example.com`.
+///
+/// ⚠️ It is NOT stored in the repository: set the `TAKARO_JAM_URL` environment variable when
+/// building (it gets compiled in), or when running the app (overrides the compiled one). The
+/// release workflows read it from the repository secret / variable `TAKARO_JAM_URL`. Without it,
+/// Jam asks for a server in Settings → Jam (where users can also change it).
 const JAM_URL: &str = match option_env!("TAKARO_JAM_URL") {
     Some(url) => url,
-    None => "wss://jam.takaro.im",
+    None => "",
 };
 
 /// Link do segundo botão do card. Os textos do card vêm traduzidos do app

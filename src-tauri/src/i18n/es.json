@@ -262,7 +262,6 @@
   },
   "jam": {
     "title": "Takaro Jam",
-    "lead": "Escuchen juntos: todos oyen la misma canción al mismo tiempo, cada uno en su YouTube Music. El volumen sigue siendo tuyo.",
     "name": "Tu nombre",
     "namePlaceholder": "Cómo te ven los demás",
     "createTitle": "Crear una sala",
@@ -284,8 +283,9 @@
     "invitedElsewhere": "Te invitaron a la sala {code}. Sal de esta sala para unirte a ella.",
     "connecting": "Conectando…",
     "reconnecting": "Se perdió la conexión. Reconectando…",
+    "devOptions": "Opciones de desarrollador",
     "server": "Servidor",
-    "serverHint": "Déjalo vacío para usar el servidor predeterminado de Jam.",
+    "serverHint": "El servidor de las salas, en ws:// o wss://. Déjalo vacío para usar el que trae Takaro.",
     "roomCode": "Código de la sala",
     "copyCode": "Copiar código",
     "copyInvite": "Copiar enlace de invitación",

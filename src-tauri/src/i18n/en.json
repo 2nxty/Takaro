@@ -262,7 +262,6 @@
   },
   "jam": {
     "title": "Takaro Jam",
-    "lead": "Listen together: everyone hears the same song at the same time, each in their own YouTube Music. Volume stays yours.",
     "name": "Your name",
     "namePlaceholder": "How others see you",
     "createTitle": "Create a room",
@@ -284,8 +283,9 @@
     "invitedElsewhere": "You were invited to room {code}. Leave this room to join it.",
     "connecting": "Connecting…",
     "reconnecting": "Connection lost. Reconnecting…",
+    "devOptions": "Developer options",
     "server": "Server",
-    "serverHint": "Leave empty to use the default Jam server.",
+    "serverHint": "The room server, as ws:// or wss://. Leave empty to use the one built into Takaro.",
     "roomCode": "Room code",
     "copyCode": "Copy code",
     "copyInvite": "Copy invite link",

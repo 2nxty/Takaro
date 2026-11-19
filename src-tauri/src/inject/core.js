@@ -249,27 +249,89 @@
       previous: () => press('.previous-button'),
     };
 
-    // Player "⋮" menu hook: plugins add their own rows. One batched observer for all of them;
-    // rows are rebuilt every time the menu opens, so a menu YTM recycled never keeps a dead row.
+    // "⋮" menu hooks: plugins add their own rows, to the player bar's menu only (onPlayerMenu) or to
+    // every song's menu (onTrackMenu: song rows, search results, the queue, the player bar). One
+    // batched observer for all of them; rows are rebuilt every time a menu opens, so a menu YTM
+    // recycled never keeps a dead row.
     const menuHandlers = [];
-    // Opened from the bar's ⋮ button, or by right-clicking the bar itself (same menu).
-    const isPlayerMenu = (menu) =>
-      !!menu?.parentElement?.ytEventForwardingBehavior?.forwarder_?.eventSink?.matches?.('ytmusic-menu-renderer.ytmusic-player-bar, ytmusic-player-bar');
-    const isTrackMenu = () => {
-      for (const el of document.querySelectorAll('tp-yt-paper-listbox #navigation-endpoint')) {
-        if (el?.data?.addToPlaylistEndpoint?.videoId || el?.data?.watchEndpoint?.videoId) return true;
+    // The player bar's own menu: opened from its ⋮ button, or by right-clicking the bar.
+    const menuSink = (menu) => menu?.parentElement?.ytEventForwardingBehavior?.forwarder_?.eventSink;
+    const isPlayerMenu = (menu) => !!menuSink(menu)?.matches?.('ytmusic-menu-renderer.ytmusic-player-bar, ytmusic-player-bar');
+    const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+    const runsText = (runs) => (runs || []).map((r) => r.text).join('');
+    const bestThumb = (list) => [...(list || [])].sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || '';
+    const ARTIST_PAGES = ['MUSIC_PAGE_TYPE_ARTIST', 'MUSIC_PAGE_TYPE_USER_CHANNEL'];
+    const artistOf = (runs) => {
+      const artists = (runs || []).filter((r) =>
+        ARTIST_PAGES.includes(r.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType));
+      return artists.length ? artists.map((r) => r.text).join(', ') : runsText(runs).split(' • ')[0] || '';
+    };
+    /** The song now in the player: { videoId, title, artist, album, thumbnail }. */
+    T.nowPlaying = () => {
+      const d = api.getVideoData?.() || {};
+      const md = navigator.mediaSession?.metadata;
+      const same = md?.title && (!d.title || md.title === d.title);
+      const arts = [...(md?.artwork || [])].sort((a, b) => (parseInt(b.sizes) || 0) - (parseInt(a.sizes) || 0));
+      return {
+        videoId: d.video_id || '',
+        title: (same ? md.title : d.title) || '',
+        artist: (same ? md.artist : d.author) || '',
+        album: same ? md.album || '' : '',
+        thumbnail: (same && arts[0]?.src) || '',
+      };
+    };
+    /** The song an open ⋮ menu is about, or null (albums, playlists, artists…):
+     *  { videoId, title, artist, thumbnail, player } — `player`: it's the player bar's menu. */
+    T.menuTrack = (menu) => {
+      if (!menu) return null;
+      const sink = menuSink(menu);
+      const row = sink?.closest?.('ytmusic-player-bar, ytmusic-responsive-list-item-renderer, ytmusic-two-row-item-renderer, ytmusic-player-queue-item');
+      const player = !!row?.matches('ytmusic-player-bar');
+      let videoId = '';
+      for (const el of menu.querySelectorAll('#navigation-endpoint')) {
+        videoId = el?.data?.addToPlaylistEndpoint?.videoId || el?.data?.watchEndpoint?.videoId || '';
+        if (videoId) break;
       }
-      return false;
+      // Signed out, the links carry no song: "Play next" / "Add to queue" still do.
+      if (!videoId) {
+        for (const item of menu.children) {
+          videoId = item.data?.serviceEndpoint?.queueAddEndpoint?.queueTarget?.videoId || '';
+          if (videoId) break;
+        }
+      }
+      if (!videoId && player) videoId = T.nowPlaying().videoId;
+      if (!VIDEO_ID.test(videoId)) return null;
+      const d = row?.data || {};
+      let title = '';
+      let artist = '';
+      let thumbnail = '';
+      const now = T.nowPlaying();
+      if (now.videoId === videoId) ({ title, artist, thumbnail } = now);
+      if (!title && d.flexColumns) {
+        const col = (i) => d.flexColumns[i]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs;
+        title = runsText(col(0));
+        artist = artistOf(col(1));
+        thumbnail = bestThumb(d.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails);
+      } else if (!title && d.title) {
+        title = runsText(d.title.runs);
+        artist = artistOf(d.shortBylineText?.runs || d.subtitle?.runs);
+        thumbnail = bestThumb(d.thumbnail?.thumbnails || d.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail?.thumbnails);
+      }
+      if (!title) title = row?.querySelector?.('.title')?.textContent?.trim() || videoId;
+      if (!/^https:\/\//.test(thumbnail)) thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+      return { videoId, title, artist, thumbnail, player };
     };
     const syncMenu = () => {
       const menu = T.$('ytmusic-menu-popup-renderer tp-yt-paper-listbox');
-      const ok = !!menu && isPlayerMenu(menu) && isTrackMenu();
+      const track = menu ? T.menuTrack(menu) : null;
       let added = false;
       for (const h of menuHandlers) {
+        const ok = !!track && (h.anyTrack || track.player);
         for (const old of document.querySelectorAll(`.${h.cls}`)) if (!ok || old.parentElement !== menu) old.remove();
         if (ok && !menu.querySelector(`:scope > .${h.cls}`)) {
+          const row = h.build(track);
+          if (!row) continue; // the plugin has nothing for this menu now
           added = true;
-          const row = h.build();
           row.classList.add(h.cls);
           const after = h.position.startsWith('after:') && menu.querySelector(`:scope > .${h.position.slice(6)}`);
           if (after) after.after(row);
@@ -277,11 +339,19 @@
         }
       }
       // YTM placed the menu for its own rows only: place it again with ours, or it no longer fits
-      // and gets a scrollbar although there's room.
-      if (added) {
-        const dropdown = menu.closest('tp-yt-iron-dropdown');
-        dropdown?.refit?.();
+      // (scrollbar, or cut off by the window). Once per opening. (refit() only for the player bar's
+      // menu: a menu opened by right-click has no anchor and would jump to the corner of the window.)
+      const dropdown = menu?.closest('tp-yt-iron-dropdown');
+      if (!dropdown) return;
+      if (!dropdown.opened) {
+        dropdown.tkFitted = false;
+        return;
       }
+      const ours = menuHandlers.some((h) => menu.querySelector(`:scope > .${h.cls}`));
+      if (!ours || (dropdown.tkFitted && !added)) return;
+      dropdown.tkFitted = true;
+      if (track?.player) dropdown.refit?.();
+      else requestAnimationFrame(() => T.fitMenu?.(dropdown));
     };
     let menuQueued = false;
     new MutationObserver(() => {
@@ -292,9 +362,14 @@
         syncMenu();
       });
     }).observe(T.$('ytmusic-app') || document.body, { childList: true, subtree: true });
-    /** Adds a row to the player bar's ⋮ menu. build() must return a new element each time.
+    // A recycled menu can open again without any DOM change: check it on every opening too.
+    document.addEventListener('iron-overlay-opened', () => menuHandlers.length && requestAnimationFrame(syncMenu), true);
+    /** Adds a row to the player bar's ⋮ menu. build(track) must return a new element each time.
      *  position: 'start' | 'end' | 'after:<class of another Takaro row>'. */
-    T.onPlayerMenu = (cls, build, position = 'start') => menuHandlers.push({ cls, build, position });
+    T.onPlayerMenu = (cls, build, position = 'start') => menuHandlers.push({ cls, build, position, anyTrack: false });
+    /** Adds a row to every song's ⋮ menu (rows, search results, queue, player bar). build(track)
+     *  gets { videoId, title, artist, thumbnail, player } and returns a new element, or null to skip. */
+    T.onTrackMenu = (cls, build, position = 'start') => menuHandlers.push({ cls, build, position, anyTrack: true });
 
     // Reemite os eventos do player como eventos do documento.
     api.addEventListener('videodatachange', (name, data) => {

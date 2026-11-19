@@ -78,6 +78,14 @@ TakaroI18n.add("es", "Español", {
     "share": {
       "title": "Compártelo donde quieras",
       "text": "Los enlaces tak:// abren la canción directamente en Takaro, y un overlay local para OBS muestra lo que suena en directo."
+    },
+    "jam": {
+      "title": "Escuchen juntos con Jam",
+      "text": "Crea una sala y comparte el código o un enlace tak://jam: todos oyen la misma canción en el mismo momento, cada uno en su YouTube Music y con su propio volumen. Una cola compartida muestra quién añadió cada canción, y el anfitrión decide si los invitados solo escuchan, añaden canciones o también reproducen, pausan y saltan."
+    },
+    "mini": {
+      "title": "Mini reproductor y Last.fm",
+      "text": "Una ventana pequeña siempre visible con la portada y los controles, un temporizador en el menú ⋮ y scrobbling en Last.fm al conectar tu cuenta."
     }
   },
   "plugins": {
@@ -106,7 +114,15 @@ TakaroI18n.add("es", "Español", {
     "toastName": "Cerrar avisos automáticamente",
     "toast": "Cierra los avisos de YouTube Music tras unos segundos.",
     "perfName": "Optimizaciones de rendimiento",
-    "perf": "Menos uso de CPU con CPU Tamer."
+    "perf": "Menos uso de CPU con CPU Tamer.",
+    "adblockName": "Bloqueador de anuncios",
+    "adblock": "Quita los anuncios de YouTube Music con las listas de filtros de uBlock Origin, actualizadas a diario. Innecesario con YouTube Premium.",
+    "smoothName": "Audio suave",
+    "smooth": "Las canciones entran y salen poco a poco en vez de cortar, y las pistas bajas suben al mismo volumen que las demás.",
+    "sleepName": "Temporizador",
+    "sleep": "En el menú ⋮ del reproductor: pausa tras 15 min a 2 h, o al final de la canción, bajando el volumen poco a poco.",
+    "barName": "Barra del reproductor",
+    "bar": "Personaliza la barra de la parte inferior de la ventana."
   },
   "extensions": {
     "title": "Extensiones del navegador",
@@ -143,11 +159,13 @@ TakaroI18n.add("es", "Español", {
     "q2": "¿Necesito Discord?",
     "a2": "No. Takaro es ante todo un reproductor de música; Discord solo hace falta para la tarjeta de Rich Presence, que se conecta sola cuando Discord se abre.",
     "q3": "¿Dónde se guardan mis datos?",
-    "a3": "Tu sesión de YouTube y tus ajustes se quedan en tu equipo, en la carpeta de datos de Takaro (com.takaro.player). Takaro no tiene servidor y no recopila nada.",
+    "a3": "Tu inicio de sesión de YouTube y tus ajustes se quedan en tu computadora, en la carpeta de datos de Takaro (com.takaro.player). Takaro no recopila nada. Solo Jam usa un servidor, y solo mientras estás en una sala: recibe la canción (id, título, artista, portada), en qué punto va y el nombre que elegiste, nunca tu cuenta.",
     "q4": "¿Funciona en macOS o Linux?",
     "a4": "Sí. Takaro funciona en Windows, macOS (Intel y Apple Silicon) y Linux. Las extensiones del navegador solo funcionan en Windows; el bloqueador de anuncios integrado funciona en los tres.",
     "q5": "¿Cómo agrego una traducción?",
-    "a5": "Copia uno de los archivos de traducción, traduce los valores y abre un pull request. El README explica dónde están los archivos, tanto de la app como de este sitio."
+    "a5": "Copia uno de los archivos de traducción, traduce los valores y abre un pull request. El README explica dónde están los archivos, tanto de la app como de este sitio.",
+    "q6": "¿Cómo funciona Jam?",
+    "a6": "Cada persona reproduce la canción en su propio Takaro, con su propia cuenta de YouTube, así que no se transmite nada entre ustedes. La sala solo comparte qué canción suena y en qué punto; el reproductor de cada invitado sigue al del anfitrión. Cualquiera con el código o el enlace de la sala puede unirse mientras esté abierta."
   },
   "footer": {
     "tagline": "Un reproductor ligero de YouTube Music para Windows, macOS y Linux.",

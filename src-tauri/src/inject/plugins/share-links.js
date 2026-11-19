@@ -1,5 +1,6 @@
-// Shared links — "Copy Takaro link" in the player's ⋮ menu. The copied tak:// link opens the
-// track straight in Takaro (the app registers the tak:// protocol). Idea from ytmdesktop2 (CC0).
+// Shared links — "Copy Takaro link" in every song's ⋮ menu (rows, search results, queue, player).
+// The copied tak:// link opens the track straight in Takaro (the app registers the tak:// protocol).
+// Idea from ytmdesktop2 (CC0).
 (() => {
   const T = window.Takaro;
   if (!T) return;
@@ -12,19 +13,20 @@
     core: true, // built in, not a plugin you can turn off
     defaults: { enabled: true },
 
-    onPlayer(api) {
+    onPlayer() {
       T.css(`
         .takaro-share { display: flex; align-items: center; gap: 16px; min-height: 36px; padding: 0 16px; box-sizing: border-box;
           width: 100%; color: var(--ytmusic-text-primary, #fff); font: 14px Roboto, sans-serif; cursor: pointer; }
         .takaro-share:hover { background: rgba(255,255,255,.1); }
         .takaro-share svg { flex: none; opacity: .9; }
       `);
-      T.onPlayerMenu('takaro-share', () => {
+      // In every song's ⋮ menu (rows, search results, queue, player): the link of that song.
+      T.onTrackMenu('takaro-share', (track) => {
         const label = T.h('span', null, T.t('plugins.share-links.copy'));
         const row = T.h('div', { class: 'takaro-share', role: 'option' }, T.icon(LINK_ICON, 18), label);
         row.addEventListener('click', async (e) => {
           e.stopPropagation();
-          const id = api.getVideoData?.()?.video_id;
+          const id = track.videoId;
           if (!id) return;
           try {
             await navigator.clipboard.writeText(`tak://watch/${id}`);
@@ -34,7 +36,7 @@
           }
         });
         return row;
-      }, 'after:takaro-speed'); // right below the speed control
+      }, 'after:takaro-speed'); // in the player's menu: right below the speed control
     },
   });
 })();

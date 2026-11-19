@@ -18,7 +18,7 @@
 
 ## O que é o Takaro?
 
-O Takaro é um player desktop para o **YouTube Music**: o player web oficial numa janela nativa e leve, com um visual mais caprichado, a capa da música como fundo, letras sincronizadas, plugins inclusos, ícone na bandeja e mais. Ele também pode mostrar o que você está ouvindo no Discord, no OBS ou como um link `tak://`.
+O Takaro é um player desktop para o **YouTube Music**: o player web oficial numa janela nativa e leve, com um visual mais caprichado, a capa da música como fundo, letras sincronizadas, plugins inclusos, ícone na bandeja e mais. Ele também pode mostrar o que você está ouvindo no Discord, no OBS ou como um link `tak://`, e com o [Takaro Jam](#takaro-jam) dá para ouvir junto com amigos numa sala compartilhada.
 
 Ele é feito com [Tauri 2](https://tauri.app) e usa o motor web que o seu sistema já tem (**WebView2** no Windows, **WebKit** no macOS e no Linux), então não carrega um Chromium embutido. O app inteiro tem cerca de 5 MB.
 
@@ -136,7 +136,7 @@ O botão **Ouvir no Takaro** do cartão do Discord leva a `takaro.im/open/?v=<id
 | `tak://music.youtube.com/…` | Qualquer endereço do YouTube Music trocando `https://` por `tak://` (links do YouTube e youtu.be também funcionam) |
 | `tak://jam/<CÓDIGO>` | Um convite do [Takaro Jam](#takaro-jam) (abre a aba Jam para entrar) |
 
-Use **⋮ → Copiar link do Takaro** no player para copiar o link da música atual.
+Use **⋮ → Copiar link do Takaro** em qualquer música (player, busca, playlists, álbuns, fila) para copiar o link dela. O clique direito numa música abre o mesmo menu.
 
 ## Overlay para OBS
 
@@ -316,7 +316,7 @@ As configurações do usuário (plugins, idioma) ficam no `localStorage` da pág
 
 ## Publicando uma versão
 
-1. Confira se o secret `DISCORD_CLIENT_ID` existe no repositório (veja [Configuração](#configuração)) e atualize a versão em `package.json`, `src-tauri/Cargo.toml` e `src-tauri/tauri.conf.json`.
+1. Confira se os secrets `DISCORD_CLIENT_ID` e `TAKARO_JAM_URL` existem no repositório (veja [Configuração](#configuração)) e atualize a versão em `package.json`, `src-tauri/Cargo.toml` e `src-tauri/tauri.conf.json`. Se o `jam-server/` mudou, publique ele também (veja [`jam-server/README.md`](jam-server/README.md)).
 2. Faça o commit, crie a tag e envie:
 
    ```bash

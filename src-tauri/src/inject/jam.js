@@ -424,6 +424,10 @@
   // ── Guest: follow the host ─────────────────────────────
   const guest = {
     nav: null, // { id, at } song we asked YTM to play
+    fixFor: '', // the song the bar check below is about
+    fixes: 0,
+    mismatchSince: 0,
+    fixAt: 0,
     userUntil: 0, // a local control request is on its way: don't undo it meanwhile
     apply(fromMessage = false) {
       const pb = S.room?.playback;
@@ -444,6 +448,28 @@
         guest.nav = { id: target, at: performance.now() };
         playVideo(target);
         return;
+      }
+      // YouTube Music sometimes plays the right song while its player bar (cover, title, queue)
+      // still shows the previous one. If that lasts, open the song again; if that doesn't fix it
+      // twice, reload the page on it (the Jam rejoins by itself).
+      const shown = T.$('ytmusic-player-bar')?.currentItem?.videoId;
+      const now2 = performance.now();
+      if (guest.fixFor !== target) Object.assign(guest, { fixFor: target, fixes: 0, mismatchSince: 0, fixAt: 0 });
+      if (shown && shown !== target) {
+        guest.mismatchSince ||= now2;
+        if (now2 - guest.mismatchSince > 3000 && now2 - guest.fixAt > 8000) {
+          guest.fixAt = now2;
+          guest.mismatchSince = 0;
+          if (++guest.fixes <= 2) {
+            guest.nav = { id: target, at: now2 };
+            playVideo(target);
+          } else {
+            T.replace(`/watch?v=${encodeURIComponent(target)}`);
+          }
+          return;
+        }
+      } else {
+        guest.mismatchSince = 0;
       }
       if (performance.now() < guest.userUntil) return;
       if (s.ended) return;
@@ -522,77 +548,19 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
   }
 
-  // ── "Add to Jam" in songs' ⋮ menus ─────────────────────
-  const runsText = (runs) => (runs || []).map((r) => r.text).join('');
-  const bestThumb = (list) => [...(list || [])].sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || '';
-  const ARTIST_PAGES = ['MUSIC_PAGE_TYPE_ARTIST', 'MUSIC_PAGE_TYPE_USER_CHANNEL'];
-  const artistOf = (runs) => {
-    runs = runs || [];
-    const artists = runs.filter((r) => ARTIST_PAGES.includes(r.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType));
-    if (artists.length) return artists.map((r) => r.text).join(', ');
-    return runsText(runs).split(' • ')[0] || '';
-  };
-
-  /** The song a ⋮ menu is about: { videoId, title, artist, thumbnail }, from the row it was opened on. */
-  function menuTrack(menu) {
-    let videoId = '';
-    for (const el of menu.querySelectorAll('#navigation-endpoint')) {
-      videoId = el?.data?.addToPlaylistEndpoint?.videoId || el?.data?.watchEndpoint?.videoId || '';
-      if (videoId) break;
-    }
-    const sink = menu.parentElement?.ytEventForwardingBehavior?.forwarder_?.eventSink;
-    const row = sink?.closest?.('ytmusic-player-bar, ytmusic-responsive-list-item-renderer, ytmusic-two-row-item-renderer, ytmusic-player-queue-item') ||
-      (sink?.matches?.('ytmusic-player-bar') ? sink : null);
-    // Signed out, the links carry no song: "Play next" / "Add to queue" still do (queueAddEndpoint).
-    if (!videoId) {
-      for (const item of menu.children) {
-        const ep = item.data?.serviceEndpoint?.queueAddEndpoint?.queueTarget;
-        if (ep?.videoId) {
-          videoId = ep.videoId;
-          break;
-        }
-      }
-    }
-    if (!videoId && row?.matches('ytmusic-player-bar')) videoId = local().id;
-    if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return null;
-    const d = row?.data || {};
-    let title = '';
-    let artist = '';
-    let thumbnail = '';
-    if (!row || row.matches('ytmusic-player-bar') || videoId === local().id) {
-      const s = local();
-      if (s.id === videoId) ({ title, artist, thumbnail } = s);
-    }
-    if (!title && d.flexColumns) {
-      const col = (i) => d.flexColumns[i]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs;
-      title = runsText(col(0));
-      artist = artistOf(col(1));
-      thumbnail = bestThumb(d.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails);
-    } else if (!title && d.title) {
-      title = runsText(d.title.runs);
-      artist = artistOf(d.shortBylineText?.runs || d.subtitle?.runs);
-      thumbnail = bestThumb(d.thumbnail?.thumbnails || d.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail?.thumbnails);
-    }
-    if (!title) title = row?.querySelector?.('.title')?.textContent?.trim() || videoId;
-    if (!/^https:\/\//.test(thumbnail)) thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-    return { videoId, title, artist, thumbnail };
-  }
-
-  function syncMenu() {
-    const menu = T.$('ytmusic-menu-popup-renderer tp-yt-paper-listbox');
-    const track = menu && canAdd() ? menuTrack(menu) : null;
-    for (const old of document.querySelectorAll('.takaro-jam-add')) if (!track || old.parentElement !== menu) old.remove();
-    if (!track || menu.querySelector(':scope > .takaro-jam-add')) return;
+  // ── "Add to Jam" in songs' ⋮ menus (core.js finds the song: rows, search, queue, player) ──
+  const addRow = (track) => {
+    if (!canAdd()) return null;
     const row = T.h('div', { class: 'takaro-jam-add', role: 'option' }, T.icon(ICON_ADD, 18), T.h('span', null, T.t('jam.addToJam')));
     row.addEventListener('click', (e) => {
       e.stopPropagation();
-      send({ type: 'queue:add', track });
-      toast(T.t('jam.added', { title: track.title }));
-      menu.closest('tp-yt-iron-dropdown')?.close?.();
+      const { videoId, title, artist, thumbnail } = track;
+      send({ type: 'queue:add', track: { videoId, title, artist, thumbnail } });
+      toast(T.t('jam.added', { title }));
+      row.closest('tp-yt-iron-dropdown')?.close?.();
     });
-    menu.prepend(row);
-    menu.closest('tp-yt-iron-dropdown')?.refit?.();
-  }
+    return row;
+  };
 
   // ── Locks + title bar button ───────────────────────────
   let barBtn = null;
@@ -693,6 +661,7 @@
     remove: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
     play: 'M8 5v14l11-7z',
     skip: 'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z',
+    chevron: 'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
   };
   const smallBtn = (icon, label, onclick) =>
     h('button', { class: 'tk-icon-btn', type: 'button', title: label, 'aria-label': label, onclick }, T.icon(ICONS[icon], 18));
@@ -701,8 +670,8 @@
       PERMS.map((p) => h('option', { value: p, selected: p === value }, T.t(`jam.perms.${p}`))));
     return sel;
   };
-  const trackRow = (track, extra, actions) =>
-    h('div', { class: 'tk-jam-track' },
+  const trackRow = (track, extra, actions, big = false) =>
+    h('div', { class: big ? 'tk-jam-track tk-jam-big' : 'tk-jam-track' },
       track.thumbnail ? h('img', { src: track.thumbnail, alt: '', referrerpolicy: 'no-referrer' }) : h('span', { class: 'tk-jam-noart' }),
       h('div', { class: 'tk-jam-meta' },
         h('div', { class: 'tk-jam-title' }, track.title),
@@ -710,11 +679,12 @@
       actions?.length ? h('div', { class: 'tk-actions' }, actions) : null);
 
   function idleView() {
-    const nameInput = h('input', { class: 'tk-url', type: 'text', maxlength: 32, value: cfg().name || '', placeholder: T.t('jam.namePlaceholder'),
-      'aria-label': T.t('jam.name') });
+    // Your name: the last one used, else the computer's user name (set by the app).
+    const nameInput = h('input', { class: 'tk-url tk-jam-input', type: 'text', maxlength: 32,
+      value: cfg().name || window.__TAKARO_USER__ || '', placeholder: T.t('jam.namePlaceholder'), 'aria-label': T.t('jam.name') });
     let perm = 'queue';
-    const codeInput = h('input', { class: 'tk-url', type: 'text', value: S.invite || '', placeholder: T.t('jam.codePlaceholder'),
-      'aria-label': T.t('jam.code'), style: 'text-transform:uppercase' });
+    const codeInput = h('input', { class: 'tk-url tk-jam-input tk-jam-code-input', type: 'text', value: S.invite || '',
+      placeholder: T.t('jam.codePlaceholder'), 'aria-label': T.t('jam.code'), spellcheck: 'false' });
     const busy = S.status !== 'idle';
     const needName = () => {
       const name = nameInput.value.trim();
@@ -724,39 +694,47 @@
       }
       return name;
     };
-    const create = h('button', { class: 'tk-btn tk-btn-primary', type: 'button', disabled: busy, onclick: () => {
+    const create = h('button', { class: 'tk-btn tk-btn-primary tk-jam-wide', type: 'button', disabled: busy, onclick: () => {
       const name = needName();
       if (name) T.jam.create(name, perm);
     } }, T.t('jam.create'));
-    const join = h('button', { class: S.invite ? 'tk-btn tk-btn-primary' : 'tk-btn', type: 'button', disabled: busy, onclick: () => {
+    const join = h('button', { class: `tk-btn tk-jam-wide${S.invite ? ' tk-btn-primary' : ''}`, type: 'button', disabled: busy, onclick: () => {
       const name = needName();
       if (name) T.jam.join(codeInput.value, name);
     } }, T.t('jam.join'));
     codeInput.addEventListener('keydown', (e) => e.key === 'Enter' && join.click());
 
-    const serverInput = h('input', { class: 'tk-url', type: 'text', value: cfg().server || '', placeholder: window.__TAKARO_JAM_URL__ || 'wss://…',
-      'aria-label': T.t('jam.server'), onchange: () => T.jam.setServer(serverInput.value) });
+    // Developer options (closed): a custom room server.
+    const serverInput = h('input', { class: 'tk-url tk-jam-input', type: 'text', value: cfg().server || '', placeholder: 'wss://…',
+      'aria-label': T.t('jam.server'), spellcheck: 'false', onchange: () => T.jam.setServer(serverInput.value) });
+    const dev = h('details', { class: 'tk-jam-dev' },
+      h('summary', null, T.icon(ICONS.chevron, 18), T.t('jam.devOptions')),
+      h('div', { class: 'tk-jam-dev-body' },
+        h('label', { class: 'tk-jam-label' }, T.t('jam.server')),
+        serverInput,
+        h('div', { class: 'tk-desc' }, T.t('jam.serverHint'))));
 
+    const label = (text) => h('label', { class: 'tk-jam-label' }, text);
     return [
-      h('p', { class: 'tk-lead' }, T.t('jam.lead')),
-      S.invite ? h('p', { class: 'tk-lead', style: 'color:var(--tk-text)' }, T.t('jam.invited', { code: S.invite })) : null,
-      h('section', { class: 'tk-card' }, h('div', { class: 'tk-field' }, h('span', { class: 'tk-name' }, T.t('jam.name')), nameInput)),
-      h('section', { class: 'tk-card' },
-        h('div', { class: 'tk-row' },
-          h('div', null, h('div', { class: 'tk-name' }, T.t('jam.createTitle')), h('div', { class: 'tk-desc' }, T.t('jam.createDesc'))),
+      S.invite ? h('div', { class: 'tk-jam-notice' }, T.t('jam.invited', { code: S.invite })) : null,
+      h('section', { class: 'tk-card tk-jam-stack' }, label(T.t('jam.name')), nameInput),
+      h('div', { class: 'tk-jam-grid' },
+        h('section', { class: 'tk-card tk-jam-stack' },
+          h('div', { class: 'tk-name' }, T.t('jam.createTitle')),
+          h('div', { class: 'tk-desc' }, T.t('jam.createDesc')),
+          label(T.t('jam.permission')),
+          permSelect(perm, (v) => (perm = v)),
+          h('div', { class: 'tk-desc tk-jam-hint' }, T.t('jam.permHint')),
           create),
-        h('div', { class: 'tk-opts' },
-          h('div', { class: 'tk-field' }, h('span', null, T.t('jam.permission')), permSelect(perm, (v) => (perm = v))),
-          h('div', { class: 'tk-desc' }, T.t('jam.permHint')))),
-      h('section', { class: 'tk-card' },
-        h('div', { class: 'tk-name' }, T.t('jam.joinTitle')),
-        h('div', { class: 'tk-desc' }, T.t('jam.joinDesc')),
-        h('div', { class: 'tk-field', style: 'margin-top:12px' }, codeInput, join)),
-      busy ? h('p', { class: 'tk-status', style: 'margin:0 4px' }, T.t('jam.connecting')) : null,
-      S.error ? h('p', { class: 'tk-status error', style: 'margin:0 4px' }, S.error) : null,
-      h('section', { class: 'tk-card' },
-        h('div', { class: 'tk-field' }, h('span', null, T.t('jam.server')), serverInput),
-        h('div', { class: 'tk-desc', style: 'margin-top:8px' }, T.t('jam.serverHint'))),
+        h('section', { class: 'tk-card tk-jam-stack' },
+          h('div', { class: 'tk-name' }, T.t('jam.joinTitle')),
+          h('div', { class: 'tk-desc' }, T.t('jam.joinDesc')),
+          label(T.t('jam.code')),
+          codeInput,
+          join)),
+      busy ? h('p', { class: 'tk-status tk-jam-msg' }, T.t('jam.connecting')) : null,
+      S.error ? h('p', { class: 'tk-status error tk-jam-msg' }, S.error) : null,
+      dev,
     ];
   }
 
@@ -780,7 +758,7 @@
     const pb = r.playback;
     const now = pb?.track
       ? trackRow(pb.track, `${pb.playing ? '▶' : '⏸'} ${fmtTime(pb.playing ? pb.position + (serverNow() - pb.updatedAt) / 1000 : pb.position)}`,
-          canControl() ? [smallBtn('skip', T.t('jam.skip'), () => T.jam.skip())] : null)
+          canControl() ? [smallBtn('skip', T.t('jam.skip'), () => T.jam.skip())] : null, true)
       : h('div', { class: 'tk-empty' }, T.t('jam.nothingPlaying'));
 
     const queue = r.queue.length
@@ -797,52 +775,91 @@
       : h('div', { class: 'tk-empty' }, T.t(canAdd() ? 'jam.queueEmpty' : 'jam.queueEmptyNoAdd'));
 
     const participants = r.participants.map((p) =>
-      h('div', { class: 'tk-row tk-jam-person', style: p.connected ? null : 'opacity:.5' },
-        h('span', null, p.name, p.id === S.you ? ` (${T.t('jam.you')})` : ''),
-        h('div', { class: 'tk-actions' },
-          p.id === r.hostId ? h('span', { class: 'tk-chip' }, T.t('jam.host')) : null,
-          !p.connected ? h('span', { class: 'tk-chip' }, T.t('jam.offline')) : null,
-          amHost && p.id !== S.you ? smallBtn('remove', T.t('jam.kick'), () => T.jam.kick(p.id)) : null)));
+      h('div', { class: 'tk-jam-person', style: p.connected ? null : 'opacity:.5' },
+        h('span', { class: 'tk-jam-avatar' }, (p.name || '?').slice(0, 1).toUpperCase()),
+        h('span', { class: 'tk-jam-person-name' }, p.name, p.id === S.you ? ` (${T.t('jam.you')})` : ''),
+        p.id === r.hostId ? h('span', { class: 'tk-chip' }, T.t('jam.host')) : null,
+        !p.connected ? h('span', { class: 'tk-chip' }, T.t('jam.offline')) : null,
+        amHost && p.id !== S.you ? smallBtn('remove', T.t('jam.kick'), () => T.jam.kick(p.id)) : null));
+
+    const heading = (text, count) =>
+      h('div', { class: 'tk-jam-heading' }, text, count != null ? h('span', { class: 'tk-count' }, String(count)) : null);
 
     return [
-      S.status === 'reconnecting' ? h('p', { class: 'tk-status error', style: 'margin:0 4px' }, T.t('jam.reconnecting')) : null,
+      S.status === 'reconnecting' ? h('p', { class: 'tk-status error tk-jam-msg' }, T.t('jam.reconnecting')) : null,
       // A tak://jam link to another room: leaving this one shows the join form with that code.
       S.invite && S.invite !== r.code
-        ? h('section', { class: 'tk-card' },
-            h('div', { class: 'tk-row' },
-              h('div', { class: 'tk-desc' }, T.t('jam.invitedElsewhere', { code: S.invite })),
-              h('button', { class: 'tk-btn tk-btn-primary', type: 'button', onclick: () => T.jam.leave() }, T.t('jam.leave'))))
+        ? h('div', { class: 'tk-jam-notice tk-row' },
+            h('span', null, T.t('jam.invitedElsewhere', { code: S.invite })),
+            h('button', { class: 'tk-btn tk-btn-primary', type: 'button', onclick: () => T.jam.leave() }, T.t('jam.leave')))
         : null,
       h('section', { class: 'tk-card' },
-        h('div', { class: 'tk-row' },
-          h('div', null, h('div', { class: 'tk-desc' }, T.t('jam.roomCode')), h('div', { class: 'tk-jam-code' }, r.code)),
+        h('div', { class: 'tk-row tk-jam-roomhead' },
+          h('div', null,
+            h('div', { class: 'tk-desc' }, T.t('jam.roomCode')),
+            h('div', { class: 'tk-jam-code' }, r.code),
+            h('div', { class: 'tk-desc' }, T.t('jam.hostIs', { name: hostName }))),
           h('div', { class: 'tk-buttons' }, copyBtn(T.t('jam.copyCode'), r.code), copyBtn(T.t('jam.copyInvite'), T.jam.inviteLink(), true))),
         h('div', { class: 'tk-opts' },
-          h('div', { class: 'tk-field' }, h('span', null, T.t('jam.hostIs', { name: hostName })),
-            h('div', { class: 'tk-buttons' },
-              h('button', { class: 'tk-btn', type: 'button', onclick: () => T.jam.leave() }, T.t('jam.leave')),
-              amHost ? h('button', { class: 'tk-btn', type: 'button', onclick: () => T.jam.end() }, T.t('jam.end')) : null)),
-          h('div', { class: 'tk-field' }, h('span', null, T.t('jam.permission')),
-            amHost ? permSelect(r.permission, (v) => T.jam.setPermission(v)) : h('span', { class: 'tk-desc' }, T.t(`jam.perms.${r.permission}`))))),
-      h('section', { class: 'tk-card' }, h('div', { class: 'tk-name', style: 'margin-bottom:8px' }, T.t('jam.nowPlaying')), now),
-      h('section', { class: 'tk-card' },
-        h('div', { class: 'tk-name', style: 'margin-bottom:8px' }, T.t('jam.queue'), h('span', { class: 'tk-count', style: 'margin-left:8px' }, String(r.queue.length))),
-        h('div', { class: 'tk-list' }, queue)),
-      h('section', { class: 'tk-card' },
-        h('div', { class: 'tk-name', style: 'margin-bottom:8px' }, T.t('jam.people'), h('span', { class: 'tk-count', style: 'margin-left:8px' }, String(r.participants.length))),
-        h('div', { class: 'tk-list' }, participants)),
+          h('div', { class: 'tk-field' },
+            h('span', null, T.t('jam.permission')),
+            amHost ? permSelect(r.permission, (v) => T.jam.setPermission(v)) : h('span', { class: 'tk-desc' }, T.t(`jam.perms.${r.permission}`))),
+          h('div', { class: 'tk-buttons', style: 'justify-content:flex-end' },
+            h('button', { class: 'tk-btn', type: 'button', onclick: () => T.jam.leave() }, T.t('jam.leave')),
+            amHost ? h('button', { class: 'tk-btn tk-jam-danger', type: 'button', onclick: () => T.jam.end() }, T.t('jam.end')) : null))),
+      h('section', { class: 'tk-card' }, heading(T.t('jam.nowPlaying')), now),
+      h('div', { class: 'tk-jam-grid tk-jam-grid-room' },
+        h('section', { class: 'tk-card' }, heading(T.t('jam.queue'), r.queue.length), h('div', { class: 'tk-list' }, queue)),
+        h('section', { class: 'tk-card' }, heading(T.t('jam.people'), r.participants.length), h('div', { class: 'tk-jam-people' }, participants))),
     ];
   }
 
   T.css(`
-    .tk-jam-code { font: 600 28px/1.2 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: 4px; color: var(--tk-text, #fff); }
+    .tk-jam-view { display: grid; gap: 10px; align-content: start; }
+    .tk-jam-notice { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--tk-steel, #464646); background: var(--tk-surface, #171717);
+      color: var(--tk-text, #fff); font-size: 13px; gap: 12px; }
+    .tk-jam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tk-jam-grid-room { grid-template-columns: 3fr 2fr; align-items: start; }
+    @media (max-width: 620px) { .tk-jam-grid, .tk-jam-grid-room { grid-template-columns: 1fr; } }
+    .tk-jam-stack { display: flex; flex-direction: column; gap: 6px; }
+    .tk-jam-stack .tk-desc { margin-top: 0; }
+    .tk-jam-label { font-size: 12px; font-weight: 500; color: var(--tk-fog, #a1a1a1); margin-top: 8px; }
+    .tk-card > .tk-jam-label:first-child { margin-top: 0; }
+    .tk .tk-jam-input { width: 100%; height: 36px; flex: none; font-size: 14px; }
+    .tk .tk-jam-input:focus { outline: none; border-color: var(--tk-steel, #464646); }
+    .tk .tk-jam-code-input { text-transform: uppercase; letter-spacing: 2px; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; }
+    .tk .tk-jam-code-input::placeholder { text-transform: none; letter-spacing: 0; font-family: Inter, 'Segoe UI', Roboto, sans-serif; }
+    .tk-jam-stack select { width: 100%; height: 36px; }
+    .tk-jam-hint { font-size: 12px; }
+    /* The buttons sit at the bottom of both cards, level with each other. */
+    .tk .tk-jam-wide { width: 100%; margin-top: auto; }
+    .tk-jam-stack > :nth-last-child(2) { margin-bottom: 12px; }
+    .tk-jam-msg { margin: 0 4px; }
+    .tk-jam-dev { border: 1px solid var(--tk-edge, #262626); border-radius: 10px; }
+    .tk-jam-dev > summary { list-style: none; display: flex; align-items: center; gap: 6px; padding: 10px 12px; cursor: pointer;
+      color: var(--tk-fog, #a1a1a1); font-size: 13px; font-weight: 500; border-radius: 10px; }
+    .tk-jam-dev > summary::-webkit-details-marker { display: none; }
+    .tk-jam-dev > summary:hover { color: var(--tk-text, #fff); background: var(--tk-surface, #171717); }
+    .tk-jam-dev > summary svg { transition: transform .15s; }
+    .tk-jam-dev[open] > summary svg { transform: rotate(90deg); }
+    .tk-jam-dev-body { display: grid; gap: 6px; padding: 0 14px 14px; }
+    .tk-jam-dev-body .tk-jam-label { margin-top: 0; }
+    .tk-jam-code { font: 600 30px/1.15 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: 5px; color: var(--tk-text, #fff); margin: 2px 0 4px; }
+    .tk-jam-roomhead { align-items: center; flex-wrap: wrap; }
+    .tk-jam-heading { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--tk-text, #fff); margin-bottom: 10px; }
     .tk-jam-track { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .tk-jam-track img, .tk-jam-noart { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; flex: none; background: var(--tk-surface, #171717); }
+    .tk-jam-track img, .tk-jam-noart { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; flex: none; background: var(--tk-surface, #171717); }
+    .tk-jam-track.tk-jam-big img, .tk-jam-track.tk-jam-big .tk-jam-noart { width: 64px; height: 64px; }
+    .tk-jam-track.tk-jam-big .tk-jam-title { font-size: 15px; }
     .tk-jam-meta { flex: 1; min-width: 0; }
     .tk-jam-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tk-jam-meta .tk-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tk-jam-person { min-height: 32px; }
-    .tk-jam-view { display: grid; gap: 8px; align-content: start; }
+    .tk-jam-people { display: grid; gap: 4px; }
+    .tk-jam-person { display: flex; align-items: center; gap: 8px; min-height: 34px; }
+    .tk-jam-person-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tk-jam-avatar { width: 26px; height: 26px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 600;
+      color: #fff; background: linear-gradient(135deg, #ff3040, #781ec8); }
+    .tk .tk-jam-danger:hover { background: #3a1418; border-color: #ff5a68; color: #ffb3ba; }
   `);
 
   /** Settings → Jam: re-renders itself while it's on screen (the form is never rebuilt while a field
@@ -912,15 +929,7 @@
     document.addEventListener('takaro:dataloaded', () => setTimeout(tick, 300));
     window.addEventListener('click', onBarClick, true);
 
-    let menuQueued = false;
-    new MutationObserver(() => {
-      if (menuQueued) return;
-      menuQueued = true;
-      requestAnimationFrame(() => {
-        menuQueued = false;
-        syncMenu();
-      });
-    }).observe(T.$('ytmusic-app') || document.body, { childList: true, subtree: true });
+    T.onTrackMenu('takaro-jam-add', addRow, 'start');
 
     T.waitFor('#takaro-titlebar .tb-settings').then((group) => {
       const label = T.t('jam.title');

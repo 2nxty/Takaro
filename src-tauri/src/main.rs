@@ -120,6 +120,14 @@ fn open_jam(app: &tauri::AppHandle, code: String) {
     }
 }
 
+/// The name of the computer's user (Jam's default display name): `USERNAME` on Windows, `USER` on
+/// macOS / Linux, without a domain part, at most 32 characters.
+fn system_user_name() -> String {
+    let raw = std::env::var("USERNAME").or_else(|_| std::env::var("USER")).unwrap_or_default();
+    let name = raw.rsplit('\\').next().unwrap_or_default().trim();
+    name.chars().filter(|c| !c.is_control()).take(32).collect()
+}
+
 /// The Jam server address given to the page (ws:// or wss:// only).
 fn jam_url() -> String {
     let url = std::env::var("TAKARO_JAM_URL").ok().filter(|u| !u.trim().is_empty()).unwrap_or_else(|| JAM_URL.to_string());
@@ -355,9 +363,9 @@ fn main() {
                 *app.state::<JamInvite>().0.lock().unwrap() = Some(code);
             }
             let inject = format!(
-                "window.__TAKARO_JAM_URL__ = {:?};
-{}{INJECT}",
+                "window.__TAKARO_JAM_URL__ = {:?};\nwindow.__TAKARO_USER__ = {:?};\n{}{INJECT}",
                 jam_url(),
+                system_user_name(),
                 adblock::init_script(app.handle())
             );
             window::create(app, &inject, links::from_args(std::env::args()))?;

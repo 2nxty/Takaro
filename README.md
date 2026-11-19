@@ -49,7 +49,7 @@
 
 ## What is Takaro?
 
-Takaro is a desktop player for **YouTube Music**: the official web player in a light native window, polished with a cleaner design, a cover-art backdrop, synced lyrics, built-in plugins, a tray icon and more. It can also share what you're listening to on Discord, in OBS or as a `tak://` link.
+Takaro is a desktop player for **YouTube Music**: the official web player in a light native window, polished with a cleaner design, a cover-art backdrop, synced lyrics, built-in plugins, a tray icon and more. It can also share what you're listening to on Discord, in OBS or as a `tak://` link, and with [Takaro Jam](#takaro-jam) you can listen together with friends in a shared room.
 
 It is built with [Tauri 2](https://tauri.app) and uses the web engine your system already has — **WebView2** on Windows, **WebKit** on macOS and Linux — so there is no bundled Chromium. The whole app is about 5 MB.
 
@@ -167,7 +167,7 @@ The **Listen on Takaro** button on the Discord card goes to `takaro.im/open/?v=<
 | `tak://music.youtube.com/…` | Any YouTube Music URL with `https://` swapped for `tak://` (YouTube and youtu.be links work too) |
 | `tak://jam/<CODE>` | A [Takaro Jam](#takaro-jam) invite (opens the Jam tab to join) |
 
-Use **⋮ → Copy Takaro link** in the player to copy the link of the current song.
+Use **⋮ → Copy Takaro link** on any song (the player, search results, playlists, albums, the queue) to copy its link. Right-clicking a song row opens the same menu.
 
 ## OBS overlay
 
@@ -405,7 +405,7 @@ Installed extensions live in `%LOCALAPPDATA%\com.takaro.player\extensions`. User
 
 ## Releasing
 
-1. Make sure the repository secret `DISCORD_CLIENT_ID` exists (see [Configuration](#configuration)), then bump the version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`.
+1. Make sure the repository secrets `DISCORD_CLIENT_ID` and `TAKARO_JAM_URL` exist (see [Configuration](#configuration)), then bump the version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`. If `jam-server/` changed, deploy it too (see [`jam-server/README.md`](jam-server/README.md)).
 2. Commit, then tag and push:
 
    ```bash

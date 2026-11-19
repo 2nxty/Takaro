@@ -115,6 +115,15 @@
           <h3 data-i18n="features.light.title">Actually lightweight</h3>
           <p data-i18n="features.light.text">Built with Tauri and the WebView2 already in Windows. No bundled Chromium, no Electron.</p>
         </article>
+        <article class="card card-wide" id="jam">
+          <h3 data-i18n="features.jam.title">Listen together with Jam</h3>
+          <p data-i18n="features.jam.text">Create a room and send the code or a tak://jam link: everyone hears the same song at the same moment, each in their own YouTube Music with their own volume. A shared queue shows who added each song, and the host decides whether guests only listen, add songs, or can also play, pause and skip.</p>
+          <a class="link" href="https://github.com/2nxty/Takaro#takaro-jam" data-i18n="features.more">Learn more</a>
+        </article>
+        <article class="card">
+          <h3 data-i18n="features.mini.title">Mini player &amp; Last.fm</h3>
+          <p data-i18n="features.mini.text">A small always-on-top window with the cover and the controls, a sleep timer in the ⋮ menu, and Last.fm scrobbling once you connect your account.</p>
+        </article>
         <article class="card">
           <h3 data-i18n="features.account.title">Your account, your library</h3>
           <p data-i18n="features.account.text">It's the official YouTube Music web player: sign in and get your playlists, likes, mixes and lyrics.</p>
@@ -226,6 +235,10 @@
         <article class="plugin"><h3 data-i18n="plugins.lyricsName">Synced lyrics</h3><p data-i18n="plugins.lyrics">Line-by-line lyrics in the Lyrics tab from Better Lyrics and LRCLIB.</p></article>
         <article class="plugin"><h3 data-i18n="plugins.toastName">Auto-close notifications</h3><p data-i18n="plugins.toast">Closes YouTube Music’s pop-up notifications after a few seconds.</p></article>
         <article class="plugin"><h3 data-i18n="plugins.perfName">Performance fixes</h3><p data-i18n="plugins.perf">Lower CPU use with CPU Tamer.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.adblockName">Ad blocker</h3><p data-i18n="plugins.adblock">Removes YouTube Music's ads with uBlock Origin's filter lists, updated daily. Not needed with YouTube Premium.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.smoothName">Smooth audio</h3><p data-i18n="plugins.smooth">Songs fade in and out instead of cutting, and quiet songs are brought up to the same loudness as the rest.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.sleepName">Sleep timer</h3><p data-i18n="plugins.sleep">In the player's ⋮ menu: pause after 15 min to 2 h, or at the end of the song, with a fade-out.</p></article>
+        <article class="plugin"><h3 data-i18n="plugins.barName">Player bar</h3><p data-i18n="plugins.bar">Customize the bar at the bottom of the window.</p></article>
       </div>
       <p class="note" data-i18n="plugins.note">Plugins are ported from pear-desktop (MIT); player design ideas from ytmdesktop2 (CC0).</p>
     </section>
@@ -266,9 +279,10 @@
       <h2 id="faq-title" data-i18n="faq.title">Questions</h2>
       <details><summary data-i18n="faq.q1">Is Takaro an official YouTube or Discord app?</summary><p data-i18n="faq.a1">No. Takaro is an independent open-source project and is not affiliated with Google, YouTube or Discord.</p></details>
       <details><summary data-i18n="faq.q2">Do I need Discord?</summary><p data-i18n="faq.a2">No. Takaro is a music player first; Discord is only needed for the Rich Presence card, which connects automatically when Discord opens.</p></details>
-      <details><summary data-i18n="faq.q3">Where is my data stored?</summary><p data-i18n="faq.a3">Your YouTube login and settings stay on your computer, in the WebView2 profile under %LOCALAPPDATA%\com.takaro.player. Takaro has no server and collects nothing.</p></details>
-      <details><summary data-i18n="faq.q4">Does it work on macOS or Linux?</summary><p data-i18n="faq.a4">Not yet. Takaro is Windows-only for now. Contributions are welcome.</p></details>
+      <details><summary data-i18n="faq.q3">Where is my data stored?</summary><p data-i18n="faq.a3">Your YouTube login and settings stay on your computer, in Takaro's data folder (com.takaro.player). Takaro collects nothing. Only Jam uses a server, and only while you're in a room: it gets the song (id, title, artist, cover), where it is and the name you chose, never your account.</p></details>
+      <details><summary data-i18n="faq.q4">Does it work on macOS or Linux?</summary><p data-i18n="faq.a4">Yes. Takaro runs on Windows, macOS (Intel and Apple Silicon) and Linux. Browser extensions are Windows-only; the built-in ad blocker works on all three.</p></details>
       <details><summary data-i18n="faq.q5">How do I add a translation?</summary><p data-i18n="faq.a5">Copy an existing JSON file, translate the values and open a pull request. The README explains where the files are, for both the app and this site.</p></details>
+      <details><summary data-i18n="faq.q6">How does Jam work?</summary><p data-i18n="faq.a6">Everyone plays the song in their own Takaro, with their own YouTube account, so nothing is streamed between you. The room only shares which song is playing and where; each guest's player follows the host's. Anyone with the room code or link can join while the room is open.</p></details>
     </section>
   </main>
 
@@ -276,7 +290,7 @@
     <div class="container footer-inner">
       <div class="footer-brand">
         <a class="brand" href="#top"><img src="icon.svg" alt="" width="24" height="24"><span>Takaro</span></a>
-        <p data-i18n="footer.tagline">A tiny YouTube Music player for Windows.</p>
+        <p data-i18n="footer.tagline">A tiny YouTube Music player for Windows, macOS and Linux.</p>
       </div>
       <ul class="footer-links">
         <li><a href="https://github.com/2nxty/Takaro">GitHub</a></li>

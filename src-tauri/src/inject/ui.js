@@ -357,24 +357,62 @@
     new ResizeObserver(placeMenu).observe(T.$('ytmusic-player-bar'));
   });
 
-  // Right-click on the player bar while its menu is open: just close the menu (YTM would open it
-  // again, stuck in the corner of the window).
+  // Right-click menus.
   {
     const openMenu = () => [...document.querySelectorAll('tp-yt-iron-dropdown')]
       .find((d) => d.offsetWidth > 0 && d.querySelector('ytmusic-menu-popup-renderer'));
+    const closeMenu = (menu) => {
+      if (typeof menu.close === 'function') menu.close();
+      else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
+    };
+
+    /** Keeps a menu that grew (Takaro's rows) inside the window, without moving it elsewhere. */
+    T.fitMenu = (dropdown) => {
+      if (!dropdown) return;
+      const r = dropdown.getBoundingClientRect();
+      const over = r.bottom - (innerHeight - 8);
+      if (over > 0) dropdown.style.top = `${Math.max(8, r.top - over)}px`;
+      const content = dropdown.querySelector('#contentWrapper > *, .dropdown-content');
+      if (content) content.style.maxHeight = `${innerHeight - 16}px`;
+    };
+
+    // Right-click anywhere while a menu is open: just close it (YTM would open it again, stuck in
+    // the corner of the window).
     let wasOpen = null;
     addEventListener('pointerdown', (e) => {
-      wasOpen = e.button === 2 && e.target.closest?.('ytmusic-player-bar') ? openMenu() || null : null;
+      wasOpen = e.button === 2 ? openMenu() || null : null;
     }, true);
     addEventListener('contextmenu', (e) => {
-      if (!wasOpen || !e.target.closest?.('ytmusic-player-bar')) return;
+      if (!wasOpen) return;
       e.preventDefault();
       e.stopImmediatePropagation();
       const menu = openMenu() || wasOpen;
       wasOpen = null;
-      if (typeof menu.close === 'function') menu.close();
-      else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
+      closeMenu(menu);
     }, true);
+
+    // Rows where YTM has no right-click menu (playlist and album tracks…): open the row's own ⋮
+    // menu instead of the browser's (Back / Forward / Reload), where the mouse is.
+    addEventListener('contextmenu', (e) => {
+      if (e.defaultPrevented) return; // YTM opened its own
+      const row = e.target.closest?.('ytmusic-responsive-list-item-renderer, ytmusic-two-row-item-renderer, ytmusic-player-queue-item');
+      const button = row && [...row.querySelectorAll('ytmusic-menu-renderer button, ytmusic-menu-renderer yt-icon-button')]
+        .filter((b) => !b.closest('#top-level-buttons, ytmusic-like-button-renderer')).pop();
+      if (!button) return;
+      e.preventDefault();
+      const { clientX: x, clientY: y } = e;
+      button.click();
+      // Move it to the mouse once YTM has placed it next to the button.
+      let tries = 0;
+      const place = () => {
+        const d = openMenu();
+        if (!d) return ++tries < 20 && setTimeout(place, 25);
+        const r = d.getBoundingClientRect();
+        d.style.left = `${Math.max(8, Math.min(x, innerWidth - r.width - 8))}px`;
+        d.style.top = `${Math.max(8, Math.min(y, innerHeight - r.height - 8))}px`;
+      };
+      setTimeout(place, 0);
+    });
   }
 
   // Covers: video thumbnails (i.ytimg.com) often have black bars baked in above and below (4:3

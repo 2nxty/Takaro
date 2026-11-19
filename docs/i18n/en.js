@@ -78,6 +78,14 @@ TakaroI18n.add("en", "English", {
     "share": {
       "title": "Share it anywhere",
       "text": "tak:// links open a song straight in Takaro, and a local OBS overlay shows what’s playing on stream."
+    },
+    "jam": {
+      "title": "Listen together with Jam",
+      "text": "Create a room and send the code or a tak://jam link: everyone hears the same song at the same moment, each in their own YouTube Music with their own volume. A shared queue shows who added each song, and the host decides whether guests only listen, add songs, or can also play, pause and skip."
+    },
+    "mini": {
+      "title": "Mini player & Last.fm",
+      "text": "A small always-on-top window with the cover and the controls, a sleep timer in the ⋮ menu, and Last.fm scrobbling once you connect your account."
     }
   },
   "plugins": {
@@ -106,7 +114,15 @@ TakaroI18n.add("en", "English", {
     "toastName": "Auto-close notifications",
     "toast": "Closes YouTube Music’s pop-up notifications after a few seconds.",
     "perfName": "Performance fixes",
-    "perf": "Lower CPU use with CPU Tamer."
+    "perf": "Lower CPU use with CPU Tamer.",
+    "adblockName": "Ad blocker",
+    "adblock": "Removes YouTube Music's ads with uBlock Origin's filter lists, updated daily. Not needed with YouTube Premium.",
+    "smoothName": "Smooth audio",
+    "smooth": "Songs fade in and out instead of cutting, and quiet songs are brought up to the same loudness as the rest.",
+    "sleepName": "Sleep timer",
+    "sleep": "In the player's ⋮ menu: pause after 15 min to 2 h, or at the end of the song, with a fade-out.",
+    "barName": "Player bar",
+    "bar": "Customize the bar at the bottom of the window."
   },
   "extensions": {
     "title": "Browser extensions",
@@ -143,11 +159,13 @@ TakaroI18n.add("en", "English", {
     "q2": "Do I need Discord?",
     "a2": "No. Takaro is a music player first; Discord is only needed for the Rich Presence card, which connects automatically when Discord opens.",
     "q3": "Where is my data stored?",
-    "a3": "Your YouTube login and settings stay on your computer, in Takaro's data folder (com.takaro.player). Takaro has no server and collects nothing.",
+    "a3": "Your YouTube login and settings stay on your computer, in Takaro's data folder (com.takaro.player). Takaro collects nothing. Only Jam uses a server, and only while you're in a room: it gets the song (id, title, artist, cover), where it is and the name you chose, never your account.",
     "q4": "Does it work on macOS or Linux?",
     "a4": "Yes. Takaro runs on Windows, macOS (Intel and Apple Silicon) and Linux. Browser extensions are Windows-only; the built-in ad blocker works on all three.",
     "q5": "How do I add a translation?",
-    "a5": "Copy one of the translation files, translate the values and open a pull request. The README explains where the files are, for both the app and this site."
+    "a5": "Copy one of the translation files, translate the values and open a pull request. The README explains where the files are, for both the app and this site.",
+    "q6": "How does Jam work?",
+    "a6": "Everyone plays the song in their own Takaro, with their own YouTube account, so nothing is streamed between you. The room only shares which song is playing and where; each guest's player follows the host's. Anyone with the room code or link can join while the room is open."
   },
   "footer": {
     "tagline": "A tiny YouTube Music player for Windows, macOS and Linux.",

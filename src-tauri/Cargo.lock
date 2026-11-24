@@ -3465,7 +3465,7 @@ dependencies = [
 
 [[package]]
 name = "takaro"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "md5",
  "serde",
@@ -3475,6 +3475,7 @@ dependencies = [
  "tauri-plugin-single-instance",
  "ureq",
  "webview2-com",
+ "windows",
  "windows-core",
 ]
 

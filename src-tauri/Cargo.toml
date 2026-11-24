@@ -1,6 +1,6 @@
 [package]
 name = "takaro"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2021"
 description = "Lightweight YouTube Music desktop player with Discord Rich Presence"
 license = "MIT"
@@ -30,6 +30,14 @@ ureq = "3" # tests the macOS / Linux download path on Windows too
 # Same versions Tauri uses; needed for the WebView2 extensions API.
 webview2-com = "0.39"
 windows-core = "0.62"
+# Taskbar buttons and progress (taskbar.rs); same version as Tauri's.
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_System_Com",
+  "Win32_System_Registry",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+] }
 
 [profile.release]
 opt-level = "s"

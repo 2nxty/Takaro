@@ -88,7 +88,23 @@
 
   // Re-render listeners (the Jam tab, the title bar button, the player locks).
   const listeners = new Set();
+  // Warnings go away by themselves after a few seconds (a new one restarts the count).
+  const ERROR_MS = 5000;
+  let errorShown = '';
+  let errorTimer = 0;
   const changed = () => {
+    if (S.error !== errorShown) {
+      errorShown = S.error;
+      clearTimeout(errorTimer);
+      if (S.error) {
+        const shown = S.error;
+        errorTimer = setTimeout(() => {
+          if (S.error !== shown) return;
+          S.error = '';
+          changed();
+        }, ERROR_MS);
+      }
+    }
     for (const fn of listeners) {
       try {
         fn();

@@ -951,6 +951,15 @@
         T.invoke('open_external', { url }).catch(report);
       } }, label, T.icon(ICONS.external, 14));
 
+    // A message that goes away after 5 seconds (or is replaced by `after`), unless it changed since.
+    const fade = (el, after = '', className = 'tk-status') => {
+      const shown = el.textContent;
+      setTimeout(() => {
+        if (el.textContent !== shown) return;
+        el.className = className;
+        el.textContent = after;
+      }, 5000);
+    };
     const status = h('span', { class: 'tk-status' });
     const checkBtn = h('button', { class: 'tk-btn', type: 'button', onclick: async () => {
       checkBtn.disabled = true;
@@ -960,9 +969,11 @@
         const info = await T.invoke('check_update');
         status.textContent = info ? '' : T.t('update.upToDate');
         if (info) T.showUpdate(info);
+        else fade(status);
       } catch (e) {
         status.className = 'tk-status error';
         status.textContent = T.t('update.checkFailed');
+        fade(status);
         report(e);
       }
       checkBtn.disabled = false;
@@ -1042,9 +1053,14 @@
       } catch (e) {
         overlayStatus.className = 'tk-status error';
         overlayStatus.textContent = T.t('ui.overlay.error', { error: String(e) });
+        fade(overlayStatus);
       }
     };
     if (T.overlayEnabled()) applyOverlay(true);
+
+    // External control: the address mods and scripts send commands to.
+    const controlDetails = h('div', { class: 'tk-opts', hidden: !T.controlEnabled() },
+      h('div', { class: 'tk-desc' }, T.t('ui.control.hint', { url: `http://127.0.0.1:${T.overlayArgs().port}/control` })));
 
     // Last.fm: connect / disconnect (hidden when the build has no Last.fm API key).
     const lastfmCard = h('section', { class: 'tk-card', hidden: true });
@@ -1066,6 +1082,7 @@
         } catch (e) {
           desc.className = 'tk-status error';
           desc.textContent = T.t('ui.lastfm.error');
+          fade(desc, T.t('ui.lastfm.desc'), 'tk-desc'); // back to the description
           btn.disabled = false;
           report(e);
         }
@@ -1094,6 +1111,15 @@
             applyOverlay(on);
           })),
         overlayDetails),
+      h('section', { class: 'tk-card' },
+        h('div', { class: 'tk-row' },
+          h('div', null, h('div', { class: 'tk-name' }, T.t('ui.control.title')), h('div', { class: 'tk-desc' }, T.t('ui.control.desc'))),
+          switchEl(T.controlEnabled(), T.t('ui.control.title'), (on) => {
+            T.save('__takaro', { control: on });
+            controlDetails.hidden = !on;
+            T.invoke('set_overlay', T.overlayArgs()).catch(report);
+          })),
+        controlDetails),
       lastfmCard,
       h('section', { class: 'tk-card' },
         h('div', { class: 'tk-row' },
@@ -1182,9 +1208,24 @@
 
   const init = async () => {
     T.css(CSS);
-    if (T.overlayEnabled()) T.invoke('set_overlay', T.overlayArgs()).catch(report);
+    if (T.overlayEnabled() || T.controlEnabled()) T.invoke('set_overlay', T.overlayArgs()).catch(report);
+    // The player's toggles (repeat, volume) for the control API's /now-playing, when they change.
+    let sentState = '';
+    setInterval(() => {
+      if (!T.controlEnabled() || !T.api) return;
+      const state = T.playerState();
+      const json = JSON.stringify(state);
+      if (json === sentState) return;
+      sentState = json;
+      T.invoke('player_state', { state }).catch(() => {});
+    }, 1000);
     const tray = ['play', 'pause', 'previous', 'next', 'show', 'settings', 'quit'];
     T.invoke('set_tray_labels', { labels: Object.fromEntries(tray.map((k) => [k, T.t(`tray.${k}`)])) }).catch(report);
+    // Windows taskbar: the buttons under the window's preview (previous / play-pause / next).
+    if (T.isWindows) {
+      T.invoke('set_taskbar_labels', { previous: T.t('titlebar.previous'), playPause: T.t('titlebar.playPause'), next: T.t('titlebar.next') })
+        .catch(() => {});
+    }
     // ── Title bar (frameless window) ──
     const winIcon = (...shapes) =>
       h('svg:svg', { viewBox: '0 0 10 10' }, shapes.map(([tag, attrs]) => h(`svg:${tag}`, attrs)));

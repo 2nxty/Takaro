@@ -38,6 +38,8 @@ Ele é feito com [Tauri 2](https://tauri.app) e usa o motor web que o seu sistem
 - **Timer para dormir**: no menu ⋮ do player: pausa depois de 15 min … 2 h, ou no fim da música, com o som diminuindo aos poucos.
 - **Takaro Jam**: ouçam juntos: salas compartilhadas com fila em comum, convites por código ou link `tak://jam/…` (veja [Takaro Jam](#takaro-jam)).
 - **Last.fm**: conecte sua conta em Configurações → Geral para registrar (scrobble) o que você ouve.
+- **Botões na barra de tarefas** (Windows): anterior / tocar-pausar / próxima na miniatura da janela.
+- **API de controle externo**: mods e scripts no seu computador podem tocar, pular, avançar e mudar o volume (veja [API de controle externo](#api-de-controle-externo)).
 - **Ícone na bandeja**: música atual, tocar/pausar, anterior/próxima, mostrar/esconder, configurações e sair pela área de notificação.
 - **Atualização automática**: procura uma release nova no GitHub e, depois que você confirma, troca o exe e reinicia.
 - **Leve no PC**: scripts orientados a eventos, otimizações opcionais de CPU/memória, e o WebView2 reduz a memória enquanto a janela está minimizada ou escondida.
@@ -141,6 +143,41 @@ Use **⋮ → Copiar link do Takaro** em qualquer música (player, busca, playli
 ## Overlay para OBS
 
 Ligue **Configurações do Takaro → Geral → Overlay para OBS** e copie o endereço que aparece (`http://127.0.0.1:13091/overlay` por padrão; a porta e as cores da barra de progresso podem ser trocadas ali). No OBS, adicione uma fonte **Navegador** (Browser Source) com esse endereço (cerca de 480×140). Ela mostra a capa, o nome, o artista e o progresso da música atual, com o logo do Takaro no canto, sobre fundo transparente. Outros layouts: `?layout=compact` e `?layout=text`. O servidor só escuta no seu próprio computador, e a música atual também fica disponível em JSON em `/now-playing`.
+
+## API de controle externo
+
+Para mods, scripts e ferramentas de live no seu próprio computador. Ligue **Configurações do Takaro → Geral → Controle externo** (desligado por padrão, e separado do overlay para OBS). Usa o mesmo servidor local e a mesma porta (`13091` por padrão) e só escuta em `127.0.0.1`.
+
+**Enviar um comando:**
+
+```
+POST http://127.0.0.1:13091/control
+X-Takaro-Control: 1
+Content-Type: application/json
+
+{"action": "next"}
+```
+
+| Ação | `value` | Faz |
+|---|---|---|
+| `toggle` | — | Tocar / pausar |
+| `next`, `previous` | — | Próxima / anterior |
+| `seek` | segundos | Vai para esse ponto da música |
+| `volume` | 0–100 | Muda o volume (fica salvo como no controle de volume) |
+| `shuffle` | — | Embaralha a fila |
+| `repeat` | — | Modo de repetição: desligado → todas → uma |
+
+Respostas: `200 {"ok":true}`; `400` para ação desconhecida; `403` sem o cabeçalho `X-Takaro-Control: 1` ou quando o `Host` não é `127.0.0.1:<porta>` / `localhost:<porta>`; `404` com o Controle externo desligado; `503` se o player não estiver pronto.
+
+O cabeçalho próprio é o que impede sites de usar a API: um navegador só pode mandá-lo depois de um preflight CORS, que o Takaro nunca permite. A checagem do `Host` bloqueia DNS rebinding.
+
+**Ler o estado:** `GET http://127.0.0.1:13091/now-playing` traz a música atual (`track`: título, artista, álbum, capa, posição, duração, pausado). Com o Controle externo ligado, traz também `controls` (as ações acima) e `state`, por exemplo `{"repeat": "ALL", "volume": 42, "muted": false}`.
+
+Exemplo (PowerShell):
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:13091/control -Headers @{ 'X-Takaro-Control' = '1' } -ContentType 'application/json' -Body '{"action":"toggle"}'
+```
 
 ## Discord Rich Presence
 
@@ -249,6 +286,7 @@ Takaro/
 │  │  ├─ links.rs             # Protocolo tak://: registro + link → endereço
 │  │  ├─ overlay.rs           # Servidor HTTP local do overlay para OBS (overlay.html)
 │  │  ├─ updater.rs           # Consulta as releases do GitHub e troca o exe
+│  │  ├─ taskbar.rs           # Botões na barra de tarefas do Windows
 │  │  ├─ tray.rs              # Ícone e menu da bandeja
 │  │  ├─ mini.rs              # Janela do mini player (ui/mini.html)
 │  │  ├─ lastfm.rs            # Login e scrobble do Last.fm

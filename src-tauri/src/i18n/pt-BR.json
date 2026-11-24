@@ -36,6 +36,11 @@
       "waiting": "Permita o Takaro na página do Last.fm que abriu no seu navegador…",
       "error": "Não foi possível conectar ao Last.fm."
     },
+    "control": {
+      "title": "Controle externo",
+      "desc": "Permite que mods e scripts neste computador controlem o player (tocar, pular, avançar, volume…).",
+      "hint": "Os comandos vão para {url} (POST, só deste computador). Veja a API no README."
+    },
     "overlay": {
       "title": "Overlay para OBS",
       "desc": "Card de “tocando agora” para usar como Browser Source no OBS.",

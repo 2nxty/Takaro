@@ -17,6 +17,8 @@
     "allow-titlebar-action",
     "allow-set-zoom",
     "allow-set-mini",
+    "allow-player-state",
+    "allow-set-taskbar-labels",
     "allow-mini-state",
     "allow-lastfm-status",
     "allow-lastfm-connect",

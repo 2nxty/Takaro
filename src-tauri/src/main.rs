@@ -11,6 +11,8 @@ mod lastfm;
 mod links;
 mod mini;
 mod overlay;
+#[cfg(windows)]
+mod taskbar;
 #[cfg_attr(not(windows), path = "stubs/perf.rs")]
 mod perf;
 mod tray;
@@ -304,6 +306,14 @@ fn open_external(url: String) -> Result<(), String> {
     window::open_in_browser(&url).map_err(|e| e.to_string())
 }
 
+/// Tooltips of the Windows taskbar buttons, in the app's language (nothing to do elsewhere).
+#[tauri::command]
+#[allow(unused_variables)]
+fn set_taskbar_labels(app: tauri::AppHandle, previous: String, play_pause: String, next: String) {
+    #[cfg(windows)]
+    taskbar::set_labels(&app, previous, play_pause, next);
+}
+
 fn main() {
     let client_id = std::env::var("DISCORD_CLIENT_ID")
         .unwrap_or_else(|_| DISCORD_CLIENT_ID.to_string());
@@ -340,6 +350,8 @@ fn main() {
             lastfm::lastfm_track,
             jam_take_invite,
             overlay::set_overlay,
+            overlay::player_state,
+            set_taskbar_labels,
             updater::check_update,
             updater::install_update,
             extensions::list_extensions,
@@ -369,6 +381,10 @@ fn main() {
                 adblock::init_script(app.handle())
             );
             window::create(app, &inject, links::from_args(std::env::args()))?;
+            overlay::init(app.handle().clone());
+            // Previous / play-pause / next under the window's preview, and the progress on its button.
+            #[cfg(windows)]
+            taskbar::init(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())

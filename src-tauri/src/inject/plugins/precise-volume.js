@@ -94,6 +94,8 @@
         showHud(v);
       };
 
+      T.setVolume = setVolume; // the control API sets the volume through here (it's remembered)
+
       const changeVolume = (up) => {
         const step = Number(cfg.steps) || 1;
         setVolume(up ? Math.min(api.getVolume() + step, 100) : Math.max(api.getVolume() - step, 0));

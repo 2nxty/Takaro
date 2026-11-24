@@ -28,6 +28,8 @@ fn main() {
                 "titlebar_action",
                 "set_zoom",
                 "set_mini",
+                "player_state",
+                "set_taskbar_labels",
                 "mini_state",
                 "mini_action",
                 "lastfm_status",

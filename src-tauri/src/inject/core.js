@@ -46,10 +46,13 @@
   T.overlayEnabled = () => !!stored.__takaro?.overlay;
   // OBS overlay settings, as passed to the `set_overlay` command.
   T.OVERLAY_DEFAULTS = { port: 13091, from: '#ff3040', to: '#781ec8' };
+  /** External control (mods, scripts): POST /control on the same local server. Off by default. */
+  T.controlEnabled = () => !!stored.__takaro?.control;
   T.overlayArgs = (enabled = T.overlayEnabled()) => {
     const o = stored.__takaro || {};
     return {
       enabled,
+      control: T.controlEnabled(),
       port: Number(o.overlayPort) || T.OVERLAY_DEFAULTS.port,
       from: o.overlayFrom || T.OVERLAY_DEFAULTS.from,
       to: o.overlayTo || T.OVERLAY_DEFAULTS.to,
@@ -241,13 +244,40 @@
     }
     T.api = api;
 
-    // Playback shortcuts (tray menu). The player bar buttons keep YTM's queue logic intact.
+    // Playback shortcuts (tray menu, taskbar buttons, the external control API). The player bar
+    // buttons keep YTM's queue logic intact.
     const press = (sel) => T.$(`ytmusic-player-bar ${sel}`)?.click();
     T.control = {
       toggle: () => press('#play-pause-button'),
       next: () => press('.next-button'),
       previous: () => press('.previous-button'),
+      /** Seconds into the song. */
+      seek: (s) => {
+        const t = Number(s);
+        if (Number.isFinite(t)) api.seekTo?.(Math.max(0, t), true);
+      },
+      shuffle: () => press('.shuffle'),
+      repeat: () => press('.repeat'), // NONE → ALL → ONE → NONE
+      /** 0–100. Through the precise-volume plugin when it's on (it remembers the level). */
+      volume: (v) => {
+        const n = Math.round(Number(v));
+        if (!Number.isFinite(n)) return;
+        const level = Math.max(0, Math.min(100, n));
+        if (level > 0 && api.isMuted?.()) api.unMute?.();
+        (T.setVolume || api.setVolume)?.(level);
+      },
     };
+    /** Actions the local control API accepts (overlay.rs keeps the same list). */
+    T.CONTROL_ACTIONS = ['toggle', 'next', 'previous', 'seek', 'shuffle', 'repeat', 'volume'];
+    T.control.run = ({ action, value } = {}) => {
+      if (T.CONTROL_ACTIONS.includes(action)) T.control[action](value);
+    };
+    /** What the player's toggles show, for the control API: { repeat, volume, muted }. */
+    T.playerState = () => ({
+      repeat: T.$('ytmusic-player-bar')?.getAttribute('repeat-mode') || 'NONE', // NONE | ALL | ONE
+      volume: api.getVolume?.() ?? null,
+      muted: !!api.isMuted?.(),
+    });
 
     // "⋮" menu hooks: plugins add their own rows, to the player bar's menu only (onPlayerMenu) or to
     // every song's menu (onTrackMenu: song rows, search results, the queue, the player bar). One
